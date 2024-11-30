@@ -21,10 +21,11 @@ ativaInimigo :: Portal -> [Inimigo] -> (Portal, [Inimigo])
 ativaInimigo = undefined
 
 terminouJogo :: Jogo -> Bool
-terminouJogo = undefined
+terminouJogo = ganhouJogo || perdeuJogo
 
 ganhouJogo :: Jogo -> Bool
 ganhouJogo = undefined
 
 perdeuJogo :: Jogo -> Bool
-perdeuJogo = undefined
+perdeuJogo Jogo{baseJogo = Base{vidaBase = 0}} = True
+perdeuJogo _ = False
