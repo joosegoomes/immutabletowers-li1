@@ -10,48 +10,35 @@ module Tarefa1 where
 
 import LI12425
 
--- | Valida se um estado de jogo é válido, de acordo com as regras definidas.
--- 
--- Esta função verifica as regras definidas para a validade do estado do jogo:
--- 1. Relativamente a portais:
---   - (1.a) Existe pelo menos um portal.
---   - (1.b) Estão posicionados sobre terra.
---   - (1.c) Existe pelo menos um caminho de terra ligando um portal à base.
---   - (1.d) Não podem estar sobrepostos a torres ou à base.
---   - (1.e) Há no máximo uma onda ativa por portal.
---
--- A função retorna True se todos os critérios forem cumpridos, e False caso contrário.
+-- Valida se um estado de jogo é válido
 validaJogo :: Jogo -> Bool
 validaJogo Jogo{portaisJogo = [], baseJogo = Base{posicaoBase = _}} = False
-validaJogo Jogo{baseJogo = Base{posicaoBase = b}, portaisJogo = portais, mapaJogo = mapa, torresJogo = torres} =
+validaJogo jogo@(Jogo{baseJogo = base, portaisJogo = portais, mapaJogo = mapa, torresJogo = torres}) =
   -- Verifica se existem portais, e se todos estão válidos
-  not (null portais) && all (\portal -> validaPortal portal mapa b torres) portais
+  not (null portais) && all (\portal -> validaPortal portal mapa (posicaoBase base) torres) portais &&
+  -- Verifica se todos os inimigos por lançar e em jogo são válidos
+  validaInimigosPorLancar (inimigosJogo jogo) portais &&
+  validaInimigosEmJogo (inimigosJogo jogo) mapa (posicaoBase base) torres &&
+  -- Verifica se todas as torres são válidas
+  all (validaTorre mapa torres) torres &&
+  -- Verifica se a base é válida
+  validaBase base mapa torres portais
 
--- | Valida o portal considerando as regras fornecidas.
--- 
--- - (1.b) Verifica se o portal está posicionado sobre terra.
--- - (1.c) Verifica se existe um caminho de terra entre o portal e a base.
--- - (1.d) Verifica se o portal não está sobreposto à base ou torres.
--- - (1.e) Verifica se há no máximo uma onda ativa por portal.
+-- Valida o portal considerando as regras fornecidas
 validaPortal :: Portal -> Mapa -> Posicao -> [Torre] -> Bool
 validaPortal Portal{posicaoPortal = posPortal, ondasPortal = ondas} mapa basePos torres =
-  -- Regras para o portal
-  eTerra posPortal mapa &&                               -- (1.b) O portal deve estar sobre terra
-  validaCaminhoTerra posPortal mapa basePos &&           -- (1.c) Deve existir um caminho de terra para a base
-  not (posicaoOcupada posPortal basePos torres) &&       -- (1.d) Não pode sobrepor a base ou torres
-  validaOndas (Portal{posicaoPortal = posPortal, ondasPortal = ondas}) && -- (1.e) No máximo uma onda ativa por portal
-  length ondas <= 1  -- Garantir que no máximo uma onda ativa por portal
+  eTerra posPortal mapa &&                              -- (1.b)
+  validaCaminhoTerra posPortal mapa basePos &&           -- (1.c)
+  not (posicaoOcupada posPortal basePos torres) &&      -- (1.d)
+  validaOndas ondas &&  -- (1.e)
+  length ondas <= 1  -- Máximo uma onda ativa por portal
 
--- | Função para verificar se uma posição está ocupada pela base ou torres.
--- 
--- - (1.d) Verifica se a posição do portal está ocupada pela base ou por uma torre.
+-- Verifica se a posição está ocupada pela base ou torres
 posicaoOcupada :: Posicao -> Posicao -> [Torre] -> Bool
 posicaoOcupada portalPos basePos torres =
   portalPos == basePos || any (\Torre{posicaoTorre = posTorre} -> portalPos == posTorre) torres
 
--- | Função que verifica se existe um caminho de terra entre o portal e a base.
--- 
--- - (1.c) Verifica se existe um caminho de terra ligando o portal à base.
+-- Valida se há um caminho de terra entre o portal e a base
 validaCaminhoTerra :: Posicao -> Mapa -> Posicao -> Bool
 validaCaminhoTerra (x, y) mapa b =
   eTerra (x, y) mapa &&
@@ -60,26 +47,98 @@ validaCaminhoTerra (x, y) mapa b =
    caminhoTerra (x, y-1) mapa b ||
    caminhoTerra (x, y+1) mapa b)
 
--- | Função que valida o caminho de terra recursivamente.
--- 
--- - (1.c) Verifica se existe um caminho de terra entre o portal e a base, considerando todas as direções possíveis.
+-- Valida o caminho de terra recursivamente
 caminhoTerra :: Posicao -> Mapa -> Posicao -> Bool
 caminhoTerra p@(x, y) mapa b
-  | p == b  = True  -- Se chegou à base, retorna True
-  | not (eTerra p mapa) = False  -- Se a posição não for Terra, retorna False
+  | p == b  = True
+  | not (eTerra p mapa) = False
   | otherwise = caminhoTerra (x-1, y) mapa b || caminhoTerra (x+1, y) mapa b || caminhoTerra (x, y-1) mapa b || caminhoTerra (x, y+1) mapa b
 
--- | Verifica se uma posição específica do mapa é do tipo "Terra".
--- 
--- - (1.b) Verifica se a posição do mapa é terra.
+-- Verifica se a posição do mapa é "Terra"
 eTerra :: Posicao -> Mapa -> Bool
 eTerra (x, y) mapa =
   let x' = floor x
       y' = floor y
   in y' >= 0 && y' < length mapa && x' >= 0 && x' < length (mapa !! y') && (mapa !! y' !! x') == Terra
 
--- | Valida se há no máximo uma onda ativa por portal.
--- 
--- - (1.e) Verifica se o portal tem no máximo uma onda ativa.
-validaOndas :: Portal -> Bool
-validaOndas Portal{ondasPortal = ondas} = length ondas <= 1
+-- Verifica se a posição do mapa é "Relva"
+eRelva :: Posicao -> Mapa -> Bool
+eRelva (x, y) mapa =
+  let x' = floor x
+      y' = floor y
+  in y' >= 0 && y' < length mapa && x' >= 0 && x' < length (mapa !! y') && (mapa !! y' !! x') == Relva
+
+-- Valida se a lista de projéteis ativos está "normalizada"
+validaProjeteisAtivos :: [Projetil] -> Bool
+validaProjeteisAtivos projeteis =
+  not (temDuplicados projeteis) &&
+  not (contémFogoEResina projeteis || contémFogoEGelo projeteis)
+  where
+    temDuplicados :: [Projetil] -> Bool
+    temDuplicados [] = False
+    temDuplicados (x:xs) = any (\p -> tipoProjetil p == tipoProjetil x) xs || temDuplicados xs
+
+    contémFogoEResina :: [Projetil] -> Bool
+    contémFogoEResina ps = temTipo Fogo ps && temTipo Resina ps
+
+    contémFogoEGelo :: [Projetil] -> Bool
+    contémFogoEGelo ps = temTipo Fogo ps && temTipo Gelo ps
+
+    temTipo :: TipoProjetil -> [Projetil] -> Bool
+    temTipo t = any (\p -> tipoProjetil p == t)
+
+-- Valida se todos os inimigos por lançar cumprem os critérios
+validaInimigosPorLancar :: [Inimigo] -> [Portal] -> Bool
+validaInimigosPorLancar inimigos portais = all (`validaInimigoPorLancar` portais) inimigos
+
+-- Valida se um inimigo por lançar cumpre os critérios
+validaInimigoPorLancar :: Inimigo -> [Portal] -> Bool
+validaInimigoPorLancar Inimigo{posicaoInimigo = pos, vidaInimigo = vida, projeteisInimigo = projeteis, velocidadeInimigo = vel} portais =
+  any (\Portal{posicaoPortal = posPortal} -> pos == posPortal) portais &&
+  vida > 0 && 
+  null projeteis &&
+  vel >= 0 &&
+  validaProjeteisAtivos projeteis
+
+-- Valida se todos os inimigos em jogo cumprem os critérios
+validaInimigosEmJogo :: [Inimigo] -> Mapa -> Posicao -> [Torre] -> Bool
+validaInimigosEmJogo inimigos mapa basePos torres = all (\inimigo -> validaInimigoEmJogo inimigo mapa basePos torres) inimigos
+
+-- Valida se um inimigo em jogo cumpre os critérios
+validaInimigoEmJogo :: Inimigo -> Mapa -> Posicao -> [Torre] -> Bool
+validaInimigoEmJogo Inimigo{posicaoInimigo = pos, velocidadeInimigo = vel, projeteisInimigo = projeteis} mapa basePos torres =
+  eTerra pos mapa && 
+  not (posicaoOcupada pos basePos torres) && 
+  vel >= 0 &&
+  validaProjeteisAtivos projeteis
+
+-- Valida se uma torre cumpre os critérios
+validaTorre :: Mapa -> [Torre] -> Torre -> Bool
+validaTorre mapa torres Torre{posicaoTorre = pos, alcanceTorre = alcance, rajadaTorre = rajada, cicloTorre = ciclo} =
+  eRelva pos mapa &&  -- (3.a)
+  alcance > 0 &&      -- (3.b)
+  rajada > 0 &&       -- (3.c)
+  ciclo >= 0 &&       -- (3.d)
+  not (torreSobreposta pos torres)  -- (3.e)
+
+-- Verifica se uma torre está sobreposta a outra
+torreSobreposta :: Posicao -> [Torre] -> Bool
+torreSobreposta pos torres = any (\Torre{posicaoTorre = posTorre} -> pos == posTorre) torres
+
+-- Valida se a base cumpre os critérios
+validaBase :: Base -> Mapa -> [Torre] -> [Portal] -> Bool
+validaBase Base{posicaoBase = pos, creditosBase = credito} mapa torres portais =
+  eTerra pos mapa &&  -- (4.a)
+  credito >= 0 &&     -- (4.b)
+  not (posicaoOcupada pos pos torres) &&  -- (4.c)
+  not (any (\Portal{posicaoPortal = posPortal} -> pos == posPortal) portais)
+
+-- Valida se as ondas de um portal são válidas
+validaOndas :: [Onda] -> Bool
+validaOndas = all validaOnda
+
+-- Valida se uma onda é válida
+validaOnda :: Onda -> Bool
+validaOnda Onda{inimigosOnda = inimigos} = not (null inimigos)
+
+--tarefa1 concluída--
