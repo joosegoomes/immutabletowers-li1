@@ -30,8 +30,9 @@ validaPortal Portal{posicaoPortal = posPortal, ondasPortal = ondas} mapa basePos
   eTerra posPortal mapa &&                              -- (1.b)
   validaCaminhoTerra posPortal mapa basePos &&           -- (1.c)
   not (posicaoOcupada posPortal basePos torres) &&      -- (1.d)
-  validaOndas ondas &&  -- (1.e)
+  validaOndas ondas && -- (1.e) Verifica as ondas
   length ondas <= 1  -- Máximo uma onda ativa por portal
+
 
 -- Verifica se a posição está ocupada pela base ou torres
 posicaoOcupada :: Posicao -> Posicao -> [Torre] -> Bool
@@ -89,7 +90,7 @@ validaProjeteisAtivos projeteis =
 
 -- Valida se todos os inimigos por lançar cumprem os critérios
 validaInimigosPorLancar :: [Inimigo] -> [Portal] -> Bool
-validaInimigosPorLancar inimigos portais = all (`validaInimigoPorLancar` portais) inimigos
+validaInimigosPorLancar inimigos portais = all (\inimigo -> validaInimigoPorLancar inimigo portais) inimigos
 
 -- Valida se um inimigo por lançar cumpre os critérios
 validaInimigoPorLancar :: Inimigo -> [Portal] -> Bool
@@ -99,6 +100,7 @@ validaInimigoPorLancar Inimigo{posicaoInimigo = pos, vidaInimigo = vida, projete
   null projeteis &&
   vel >= 0 &&
   validaProjeteisAtivos projeteis
+
 
 -- Valida se todos os inimigos em jogo cumprem os critérios
 validaInimigosEmJogo :: [Inimigo] -> Mapa -> Posicao -> [Torre] -> Bool
