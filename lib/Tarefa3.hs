@@ -13,3 +13,4 @@ import LI12425
 
 atualizaJogo :: Tempo -> Jogo -> Jogo
 atualizaJogo = undefined
+

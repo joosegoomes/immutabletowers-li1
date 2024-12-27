@@ -21,7 +21,7 @@ inimigosNoAlcance torre = filter (estaNoAlcance torre)
     estaNoAlcance Torre {posicaoTorre = (tx, ty), alcanceTorre = alcance} Inimigo {posicaoInimigo = (ix, iy)} =
       let dx = tx - ix
           dy = ty - iy
-      in (dx * dx + dy * dy) <= (alcance * alcance)
+      in (dx^2 + dy^2) <= (alcance^2)
 
 
 -- | 'atingeInimigo' aplica o dano de uma torre a um inimigo, reduzindo a vida do inimigo.
@@ -55,20 +55,15 @@ atingeInimigo Torre {danoTorre = dano, projetilTorre = projTorre} inimigo@Inimig
 -- | 'terminouJogo' verifica se o jogo terminou, seja por vitória ou derrota.
 -- (Alínea 3)
 terminouJogo :: Jogo -> Bool
-terminouJogo Jogo {baseJogo = Base {creditosBase = creditos}, inimigosJogo = inimigos} =
-  creditos <= 0 || null inimigos
-
+terminouJogo Jogo {baseJogo = Base {vidaBase = vida}, inimigosJogo = inimigos} = vida <= 0 || null inimigos
 
 -- | 'ganhouJogo' verifica se o jogador ganhou o jogo, ou seja, não há mais inimigos e a vida da base é maior que 0.
 ganhouJogo :: Jogo -> Bool
-ganhouJogo Jogo {baseJogo = Base {creditosBase = creditos}, inimigosJogo = inimigos} =
-  creditos > 0 && null inimigos
-
+ganhouJogo Jogo {baseJogo = Base {vidaBase = vida}, inimigosJogo = inimigos} = vida > 0 && null inimigos
 
 -- | 'perdeuJogo' verifica se o jogador perdeu o jogo, ou seja, a vida da base é 0 ou menor.
 perdeuJogo :: Jogo -> Bool
-perdeuJogo Jogo {baseJogo = Base {creditosBase = creditos}} = creditos <= 0
-
+perdeuJogo Jogo {baseJogo = Base {vidaBase = vida}} = vida <= 0
 
 -- | 'ativaInimigo' ativa o próximo inimigo na onda de um portal e atualiza o estado do jogo.
 -- (Alínea 4)
