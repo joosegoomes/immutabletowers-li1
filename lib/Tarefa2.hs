@@ -11,15 +11,17 @@ module Tarefa2 where
 
 import LI12425
 
--- | A função 'inimigosNoAlcance' recebe uma torre e uma lista de inimigos,
--- e retorna uma lista dos inimigos que estão ao alcance da torre.
+-- | A função 'inimigosNoAlcance' recebe uma torre e uma lista de inimigos e retorna uma lista dos inimigos que estão ao alcance da torre.
 -- (Alínea 1)
 inimigosNoAlcance :: Torre -> [Inimigo] -> [Inimigo]
 inimigosNoAlcance torre = filter (estaNoAlcance torre)
   where
     estaNoAlcance :: Torre -> Inimigo -> Bool
-    estaNoAlcance Torre {posicaoTorre = (tx, ty), alcanceTorre = alcance} Inimigo {posicaoInimigo = (ix, iy)} =
-      let dx = tx - ix
+    estaNoAlcance torre inimigo =
+      let (tx, ty) = posicaoTorre torre
+          (ix, iy) = posicaoInimigo inimigo
+          alcance = alcanceTorre torre
+          dx = tx - ix
           dy = ty - iy
       in (dx^2 + dy^2) <= (alcance^2)
 
@@ -57,11 +59,11 @@ atingeInimigo Torre {danoTorre = dano, projetilTorre = projTorre} inimigo@Inimig
 terminouJogo :: Jogo -> Bool
 terminouJogo Jogo {baseJogo = Base {vidaBase = vida}, inimigosJogo = inimigos} = vida <= 0 || null inimigos
 
--- | 'ganhouJogo' verifica se o jogador ganhou o jogo, ou seja, não há mais inimigos e a vida da base é maior que 0.
+-- | 'ganhouJogo' verifica se o jogador ganhou o jogo, ou seja, não há mais inimigos e a vida da base é maior que 0. (win condition)
 ganhouJogo :: Jogo -> Bool
 ganhouJogo Jogo {baseJogo = Base {vidaBase = vida}, inimigosJogo = inimigos} = vida > 0 && null inimigos
 
--- | 'perdeuJogo' verifica se o jogador perdeu o jogo, ou seja, a vida da base é 0 ou menor.
+-- | 'perdeuJogo' verifica se o jogador perdeu o jogo, ou seja, a vida da base é 0 ou menor. (lose condition)
 perdeuJogo :: Jogo -> Bool
 perdeuJogo Jogo {baseJogo = Base {vidaBase = vida}} = vida <= 0
 
@@ -75,3 +77,5 @@ ativaInimigo Portal {ondasPortal = (onda : ondas)} jogo =
       novosInimigosAtivos = inimigosAtuais ++ novosInimigos
       jogoAtualizado = jogo {inimigosJogo = novosInimigosAtivos}
   in ativaInimigo (Portal {ondasPortal = ondas}) jogoAtualizado
+
+-- Tarefa 2 concluída --

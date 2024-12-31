@@ -73,17 +73,17 @@ eRelva (x, y) mapa =
 validaProjeteisAtivos :: [Projetil] -> Bool
 validaProjeteisAtivos projeteis =
   not (temDuplicados projeteis) &&
-  not (contémFogoEResina projeteis || contémFogoEGelo projeteis)
+  not (contemFogoEResina projeteis || contemFogoEGelo projeteis)
   where
     temDuplicados :: [Projetil] -> Bool
     temDuplicados [] = False
     temDuplicados (x:xs) = any (\p -> tipoProjetil p == tipoProjetil x) xs || temDuplicados xs
 
-    contémFogoEResina :: [Projetil] -> Bool
-    contémFogoEResina ps = temTipo Fogo ps && temTipo Resina ps
+    contemFogoEResina :: [Projetil] -> Bool
+    contemFogoEResina ps = temTipo Fogo ps && temTipo Resina ps
 
-    contémFogoEGelo :: [Projetil] -> Bool
-    contémFogoEGelo ps = temTipo Fogo ps && temTipo Gelo ps
+    contemFogoEGelo :: [Projetil] -> Bool
+    contemFogoEGelo ps = temTipo Fogo ps && temTipo Gelo ps
 
     temTipo :: TipoProjetil -> [Projetil] -> Bool
     temTipo t = any (\p -> tipoProjetil p == t)
