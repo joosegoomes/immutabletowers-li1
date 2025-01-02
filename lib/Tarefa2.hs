@@ -14,50 +14,42 @@ import LI12425
 -- | A função 'inimigosNoAlcance' recebe uma torre e uma lista de inimigos e retorna uma lista dos inimigos que estão ao alcance da torre.
 -- (Alínea 1)
 inimigosNoAlcance :: Torre -> [Inimigo] -> [Inimigo]
-inimigosNoAlcance torre = filter (estaNoAlcance torre)
-  where
-    estaNoAlcance :: Torre -> Inimigo -> Bool
-    estaNoAlcance torre inimigo =
-      let (tx, ty) = posicaoTorre torre
-          (ix, iy) = posicaoInimigo inimigo
-          alcance = alcanceTorre torre
-          dx = tx - ix
-          dy = ty - iy
-      in (dx^2 + dy^2) <= (alcance^2)
-
+inimigosNoAlcance torre = filter (\inimigo -> distancia (posicaoInimigo inimigo) (posicaoTorre torre) <= alcanceTorre torre)
+  where distancia (x1, y1) (x2, y2) = sqrt ((x1 - x2) ^ 2 + (y1 - y2) ^ 2)
 
 -- | 'atingeInimigo' aplica o dano de uma torre a um inimigo, reduzindo a vida do inimigo.
 --   Também atualiza a lista de projéteis do inimigo com base nas sinergias entre os projéteis.
 -- (Alínea 2)
 atingeInimigo :: Torre -> Inimigo -> Inimigo
 atingeInimigo Torre {danoTorre = dano, projetilTorre = projTorre} inimigo@Inimigo {vidaInimigo = vida, projeteisInimigo = projInimigo} =
-  inimigo
-    { vidaInimigo = max 0 (vida - dano),
-      projeteisInimigo = atualizaProjeteis projTorre projInimigo
-    }
-  where
+  inimigo { vidaInimigo = max 0 (vida - dano), projeteisInimigo = atualizaProjeteis projTorre projInimigo}
+   where
     -- Funções de sinergia de projéteis
     atualizaProjeteis :: Projetil -> [Projetil] -> [Projetil]
     atualizaProjeteis proj [] = [proj]
     atualizaProjeteis proj (p:ps)
       | cancelaMutuamente proj p = atualizaProjeteis proj ps
-      | dobraDuracao proj p = proj : atualizaProjeteis p ps
+      | dobraDuracao proj p = proj {duracaoProjetil = dobra proj}: atualizaProjeteis proj ps
       | otherwise = p : atualizaProjeteis proj ps
 
     cancelaMutuamente :: Projetil -> Projetil -> Bool
     cancelaMutuamente (Projetil Fogo _) (Projetil Resina _) = True
+    cancelaMutuamente (Projetil Gelo _) (Projetil Fogo _) = True
     cancelaMutuamente (Projetil Fogo _) (Projetil Gelo _) = True
     cancelaMutuamente _ _ = False
 
     dobraDuracao :: Projetil -> Projetil -> Bool
-    dobraDuracao (Projetil Fogo _) (Projetil Resina _) = True
+    dobraDuracao (Projetil Resina _) (Projetil Fogo _) = True
     dobraDuracao _ _ = False
 
-
+    dobra :: Projetil -> Duracao
+    dobra (Projetil _ (Finita t)) = Finita (2 * t)
+    dobra (Projetil _ Infinita) = Infinita
+    
 -- | 'terminouJogo' verifica se o jogo terminou, seja por vitória ou derrota.
 -- (Alínea 3)
 terminouJogo :: Jogo -> Bool
-terminouJogo Jogo {baseJogo = Base {vidaBase = vida}, inimigosJogo = inimigos} = vida <= 0 || null inimigos
+terminouJogo jogo = ganhouJogo jogo || perdeuJogo jogo
 
 -- | 'ganhouJogo' verifica se o jogador ganhou o jogo, ou seja, não há mais inimigos e a vida da base é maior que 0. (win condition)
 ganhouJogo :: Jogo -> Bool

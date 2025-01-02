@@ -10,6 +10,7 @@ Módulo para a realização da Tarefa 3 de LI1 em 2024/25.
 module Tarefa3 where
 
 import LI12425
+import Tarefa2
 
 -- | A função 'atualizaJogo' recebe um intervalo de tempo e um jogo, e retorna o jogo atualizado.
 atualizaJogo :: Tempo -> Jogo -> Jogo
