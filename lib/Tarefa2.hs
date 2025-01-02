@@ -61,13 +61,13 @@ perdeuJogo Jogo {baseJogo = Base {vidaBase = vida}} = vida <= 0
 
 -- | 'ativaInimigo' ativa o próximo inimigo na onda de um portal e atualiza o estado do jogo.
 -- (Alínea 4)
-ativaInimigo :: Portal -> Jogo -> Jogo
-ativaInimigo Portal {ondasPortal = []} jogo = jogo
-ativaInimigo Portal {ondasPortal = (onda : ondas)} jogo =
-  let inimigosAtuais = inimigosJogo jogo
-      novosInimigos = inimigosOnda onda
-      novosInimigosAtivos = inimigosAtuais ++ novosInimigos
-      jogoAtualizado = jogo {inimigosJogo = novosInimigosAtivos}
-  in ativaInimigo (Portal {ondasPortal = ondas}) jogoAtualizado
-
+ativaInimigo :: Portal -> Jogo -> Jogo 
+ativaInimigo portal@Portal {ondasPortal = []} jogo = jogo
+ativaInimigo portal@Portal {ondasPortal = (onda:ondas)} jogo = 
+  jogo { inimigosJogo = inimigosJogo jogo ++ novosInimigos, portaisJogo = atualizaPortal portal } 
+  where 
+  novosInimigos = take 1 (inimigosOnda onda) -- Ativa apenas o próximo inimigo 
+  ondaAtualizada = onda {inimigosOnda = drop 1 (inimigosOnda onda)} 
+  atualizaPortal p = [p {ondasPortal = ondaAtualizada : ondas}]
+  
 -- Tarefa 2 concluída --
