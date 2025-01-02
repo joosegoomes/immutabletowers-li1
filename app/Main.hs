@@ -22,3 +22,4 @@ main = do
   play janela fundo fr it desenha reageEventos reageTempo
   where
     it = ImmutableTowers {}
+

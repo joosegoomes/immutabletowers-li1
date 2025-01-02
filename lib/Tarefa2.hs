@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-missing-fields #-}
 {-|
 Module      : Tarefa2
 Description : Auxiliares do Jogo
@@ -69,5 +68,5 @@ ativaInimigo portal@Portal {ondasPortal = (onda:ondas)} jogo =
   novosInimigos = take 1 (inimigosOnda onda) -- Ativa apenas o próximo inimigo 
   ondaAtualizada = onda {inimigosOnda = drop 1 (inimigosOnda onda)} 
   atualizaPortal p = [p {ondasPortal = ondaAtualizada : ondas}]
-  
+
 -- Tarefa 2 concluída --
