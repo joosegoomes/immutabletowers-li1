@@ -7,6 +7,8 @@ import Tarefa3Spec (testesTarefa3)
 
 main :: IO ()
 main = do
-  putStrLn "Running all test suites..."
-  runTestTTAndExit $ TestList [testesTarefa1, testesTarefa2, testesTarefa3]
-  putStrLn "All test suites passed!"
+  putStrLn "A correr todos os testes..."
+  counts <- runTestTT $ TestList [testesTarefa1, testesTarefa2, testesTarefa3]
+  if errors counts + failures counts == 0
+    then putStrLn "Todos os testes passaram!"
+    else putStrLn "Alguns testes falharam."
