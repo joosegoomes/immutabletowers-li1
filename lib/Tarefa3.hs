@@ -1,4 +1,3 @@
-
 {-|
 Module      : Tarefa3
 Description : Mecânica do Jogo
