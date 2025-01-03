@@ -32,34 +32,34 @@ atualizaEstadoInimigos deltaTempo inimigos base torres jogo =
   where
     inimigosComEfeitos = map aplicaEfeitosProjetis inimigos
     inimigosMovidos = map (moveInimigo deltaTempo jogo) inimigosComEfeitos
-    inimigosAtivos = filter (\i -> vidaInimigo i > 0 && posicaoInimigo i /= posicaoBase (baseJogo jogo)) inimigosMovidos
-    danoTotal = sum [ataqueInimigo i | i <- inimigosMovidos, posicaoInimigo i == posicaoBase (baseJogo jogo)]
+    inimigosAtivos = filter (\inimigo -> vidaInimigo inimigo > 0 && posicaoInimigo inimigo /= posicaoBase (baseJogo jogo)) inimigosMovidos
+    danoTotal = sum [ataqueInimigo inimigo | inimigo <- inimigosMovidos, posicaoInimigo inimigo == posicaoBase (baseJogo jogo)]
     baseAtualizada = base {vidaBase = max 0 (vidaBase base - danoTotal)}
 
 -- Aplica os efeitos ativos nos inimigos, como Fogo, Gelo e Resina.
 aplicaEfeitosProjetis :: Inimigo -> Inimigo
 aplicaEfeitosProjetis inimigo = foldl aplicaEfeito inimigo (projeteisInimigo inimigo)
   where
-    aplicaEfeito inim (Projetil Fogo (Finita t)) = inim {vidaInimigo = vidaInimigo inim - 5 * min t 1}
-    aplicaEfeito inim (Projetil Gelo _) = inim {velocidadeInimigo = 0}
-    aplicaEfeito inim (Projetil Resina _) = inim {velocidadeInimigo = velocidadeInimigo inim * 0.7}
-    aplicaEfeito inim _ = inim
+    aplicaEfeito inimigo (Projetil Fogo (Finita t)) = inimigo {vidaInimigo = vidaInimigo inimigo - 5 * min t 1}
+    aplicaEfeito inimigo (Projetil Gelo _) = inimigo {velocidadeInimigo = 0}
+    aplicaEfeito inimigo (Projetil Resina _) = inimigo {velocidadeInimigo = velocidadeInimigo inimigo * 0.5}
+    aplicaEfeito inimigo _ = inimigo
 
 -- Movimenta os inimigos com base na sua direção e velocidade.
 moveInimigo :: Tempo -> Jogo -> Inimigo -> Inimigo
-moveInimigo deltaTempo jogo inimigo@Inimigo {posicaoInimigo = (x, y), direcaoInimigo = dir, velocidadeInimigo = vel} =
-  case dir of
-    Norte -> inimigo {posicaoInimigo = (x, y - vel * deltaTempo)}
-    Sul   -> inimigo {posicaoInimigo = (x, y + vel * deltaTempo)}
-    Este  -> inimigo {posicaoInimigo = (x + vel * deltaTempo, y)}
-    Oeste -> inimigo {posicaoInimigo = (x - vel * deltaTempo, y)}
+moveInimigo deltaTempo jogo inimigo@Inimigo {posicaoInimigo = (x, y), direcaoInimigo = direcao, velocidadeInimigo = velocidade} =
+  case direcao of
+    Norte -> inimigo {posicaoInimigo = (x, y - velocidade * deltaTempo)}
+    Sul   -> inimigo {posicaoInimigo = (x, y + velocidade * deltaTempo)}
+    Este  -> inimigo {posicaoInimigo = (x + velocidade * deltaTempo, y)}
+    Oeste -> inimigo {posicaoInimigo = (x - velocidade * deltaTempo, y)}
 
 -- Atualiza as torres: dispara projéteis e aplica dano aos inimigos no alcance.
 atualizaEstadoTorres :: Tempo -> [Torre] -> [Inimigo] -> ([Torre], [Inimigo])
 atualizaEstadoTorres deltaTempo torres inimigos = (torresAtualizadas, inimigosAtualizados)
   where
-    torresComCooldown = map (\t -> t {tempoTorre = max 0 (tempoTorre t - deltaTempo)}) torres
-    (inimigosAtualizados, torresAtualizadas) = foldl (\(inis, ts) torre -> let (inis', torre') = disparaProjetilTorre torre inis in (inis', ts ++ [torre'])) (inimigos, []) torresComCooldown
+    torresComCooldown = map (\torre -> torre {tempoTorre = max 0 (tempoTorre torre - deltaTempo)}) torres
+    (inimigosAtualizados, torresAtualizadas) = foldl (\(inimigos, torres) torre -> let (inimigos', torre') = disparaProjetilTorre torre inimigos in (inimigos', torres ++ [torre'])) (inimigos, []) torresComCooldown
 
 disparaProjetilTorre :: Torre -> [Inimigo] -> ([Inimigo], Torre)
 disparaProjetilTorre torre inimigos
@@ -76,9 +76,9 @@ atualizaEstadoPortais deltaTempo portais inimigos jogo = map atualizaPortal port
     atualizaPortal portal@Portal {ondasPortal = ondas} =
       portal {ondasPortal = map atualizaOnda ondas}
       where
-        atualizaOnda onda@Onda {tempoOnda = t, inimigosOnda = inimigosOnda'} =
-          if t <= 0 && not (null inimigosOnda')
+        atualizaOnda onda@Onda {tempoOnda = torre, inimigosOnda = inimigosOnda'} =
+          if torre <= 0 && not (null inimigosOnda')
             then onda {inimigosOnda = tail inimigosOnda', tempoOnda = cicloOnda onda, entradaOnda = max 0 (entradaOnda onda - deltaTempo)}
-            else onda {tempoOnda = max 0 (t - deltaTempo)}
+            else onda {tempoOnda = max 0 (torre - deltaTempo)}
 
 --tarefa 3 atualizada-- 
