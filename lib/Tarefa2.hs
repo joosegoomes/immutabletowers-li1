@@ -28,23 +28,25 @@
       atualizaProjeteis proj [] = [proj]
       atualizaProjeteis proj (p:ps)
         | cancelaMutuamente proj p = atualizaProjeteis proj ps
-        | dobraDuracao proj p = proj {duracaoProjetil = dobra proj}: atualizaProjeteis proj ps
+        | dobraDuracao proj p = proj {duracaoProjetil = dobra proj} : atualizaProjeteis proj ps
         | otherwise = p : atualizaProjeteis proj ps
 
+      -- Cancelamentos mutuamente
       cancelaMutuamente :: Projetil -> Projetil -> Bool
-      cancelaMutuamente (Projetil Fogo _) (Projetil Resina _) = True
-      cancelaMutuamente (Projetil Gelo _) (Projetil Fogo _) = True
       cancelaMutuamente (Projetil Fogo _) (Projetil Gelo _) = True
+      cancelaMutuamente (Projetil Gelo _) (Projetil Fogo _) = True
       cancelaMutuamente _ _ = False
 
+      -- Dobra a duração de projéteis
       dobraDuracao :: Projetil -> Projetil -> Bool
       dobraDuracao (Projetil Resina _) (Projetil Fogo _) = True
+      dobraDuracao (Projetil Fogo _) (Projetil Resina _) = True  -- Adicionando o caso fogo + resina
       dobraDuracao _ _ = False
 
       dobra :: Projetil -> Duracao
       dobra (Projetil _ (Finita t)) = Finita (2 * t)
       dobra (Projetil _ Infinita) = Infinita
-      
+
   -- | 'terminouJogo' verifica se o jogo terminou, seja por vitória ou derrota.
   -- (Alínea 3)
   terminouJogo :: Jogo -> Bool
