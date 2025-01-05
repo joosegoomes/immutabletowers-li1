@@ -144,3 +144,4 @@ validaOnda :: Onda -> Bool
 validaOnda Onda{inimigosOnda = inimigos} = not (null inimigos)
 
 --tarefa1 concluída--
+

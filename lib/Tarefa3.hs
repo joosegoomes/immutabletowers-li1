@@ -9,76 +9,107 @@ Módulo para a realização da Tarefa 3 de LI1 em 2024/25.
 module Tarefa3 where
 
 import LI12425
-import Tarefa1
-import Tarefa2
 
-deriving instance Eq Projetil
-deriving instance Eq Inimigo
-
--- Atualiza o estado do jogo com base no tempo decorrido.
-atualizaEstadoJogo :: Tempo -> Jogo -> Jogo
-atualizaEstadoJogo deltaTempo jogo@Jogo {baseJogo = base, inimigosJogo = inimigos, torresJogo = torres, portaisJogo = portais} =
-  jogoAtualizado
+-- Atualiza o estado do jogo em função do tempo decorrido
+atualizaJogo :: Tempo -> Jogo -> Jogo
+atualizaJogo dt jogo = jogo {
+    inimigosJogo = novosInimigos,
+    torresJogo = novasTorres,
+    baseJogo = novaBase,
+    portaisJogo = novosPortais
+}
   where
-    (inimigosAtualizados, baseAtualizada) = atualizaEstadoInimigos deltaTempo inimigos base torres jogo
-    (torresAtualizadas, inimigosComDano) = atualizaEstadoTorres deltaTempo torres inimigosAtualizados
-    portaisAtualizados = atualizaEstadoPortais deltaTempo portais inimigosComDano jogo
-    jogoAtualizado = jogo {baseJogo = baseAtualizada, inimigosJogo = inimigosComDano, torresJogo = torresAtualizadas, portaisJogo = portaisAtualizados}
+    -- Atualizar o estado dos inimigos
+    (novosInimigos, novaBase) = atualizaInimigos dt (inimigosJogo jogo) (baseJogo jogo) (mapaJogo jogo)
 
--- Atualiza o estado dos inimigos: movimenta, aplica efeitos e remove mortos ou os que atingiram a base.
-atualizaEstadoInimigos :: Tempo -> [Inimigo] -> Base -> [Torre] -> Jogo -> ([Inimigo], Base)
-atualizaEstadoInimigos deltaTempo inimigos base torres jogo =
-  (inimigosAtivos, baseAtualizada)
+    -- Atualizar o estado das torres
+    novasTorres = map (atualizaTorre dt novosInimigos) (torresJogo jogo)
+
+    -- Atualizar o estado dos portais
+    novosPortais = map (atualizaPortal dt novosInimigos) (portaisJogo jogo)
+
+-- Atualiza os inimigos no mapa
+atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> ([Inimigo], Base)
+atualizaInimigos dt inimigos base mapa = foldr processaInimigo ([], base) inimigos
   where
-    inimigosComEfeitos = map aplicaEfeitosProjetis inimigos
-    inimigosMovidos = map (moveInimigo deltaTempo jogo) inimigosComEfeitos
-    inimigosAtivos = filter (\inimigo -> vidaInimigo inimigo > 0 && posicaoInimigo inimigo /= posicaoBase (baseJogo jogo)) inimigosMovidos
-    danoTotal = sum [ataqueInimigo inimigo | inimigo <- inimigosMovidos, posicaoInimigo inimigo == posicaoBase (baseJogo jogo)]
-    baseAtualizada = base {vidaBase = max 0 (vidaBase base - danoTotal)}
+    processaInimigo inimigo (atualizados, baseAtual)
+      | vidaInimigo inimigo <= 0 =
+          (atualizados, baseAtual { creditosBase = creditosBase baseAtual + butimInimigo inimigo })
+      | chegouBase inimigo (posicaoBase baseAtual) =
+          (atualizados, baseAtual { vidaBase = vidaBase baseAtual - ataqueInimigo inimigo })
+      | otherwise =
+          (movimentaInimigo dt mapa inimigo : atualizados, baseAtual)
 
--- Aplica os efeitos ativos nos inimigos, como Fogo, Gelo e Resina.
+    chegouBase inimigo posBase =
+      let (xi, yi) = posicaoInimigo inimigo
+          (xb, yb) = posBase
+      in abs (xi - xb) < 0.5 && abs (yi - yb) < 0.5
+
+-- Movimenta o inimigo no mapa
+movimentaInimigo :: Tempo -> Mapa -> Inimigo -> Inimigo
+movimentaInimigo dt mapa inimigo
+  | congelado inimigo = inimigo -- Inimigo congelado não se move
+  | otherwise =
+      inimigo { posicaoInimigo = (x + dx * vel * dt, y + dy * vel * dt) }
+  where
+    (x, y) = posicaoInimigo inimigo
+    (dx, dy) = direcaoParaDelta (direcaoInimigo inimigo)
+    vel = velocidadeInimigo inimigo * ajustaVelocidade (projeteisInimigo inimigo)
+
+    congelado inimigo = any (\p -> tipoProjetil p == Gelo) (projeteisInimigo inimigo)
+
+-- Ajusta a velocidade do inimigo com base nos efeitos de projéteis
+ajustaVelocidade :: [Projetil] -> Float
+ajustaVelocidade [] = 1
+ajustaVelocidade (Projetil Resina _ : _) = 0.5
+ajustaVelocidade _ = 1
+
+-- Atualiza o estado de uma torre
+atualizaTorre :: Tempo -> [Inimigo] -> Torre -> Torre
+atualizaTorre dt inimigos torre
+  | tempoTorre torre > 0 = torre { tempoTorre = tempoTorre torre - dt }
+  | null alvos = torre
+  | otherwise = torre { tempoTorre = cicloTorre torre }
+  where
+    alvos = inimigosNoAlcance torre inimigos
+
+-- Determina os inimigos no alcance da torre
+inimigosNoAlcance :: Torre -> [Inimigo] -> [Inimigo]
+inimigosNoAlcance torre inimigos = filter (\inimigo -> distancia (posicaoTorre torre) (posicaoInimigo inimigo) <= alcanceTorre torre) inimigos
+  where
+    distancia (x1, y1) (x2, y2) = sqrt ((x1 - x2)^2 + (y1 - y2)^2)
+
+-- Atualiza o estado de um portal
+atualizaPortal :: Tempo -> [Inimigo] -> Portal -> Portal
+atualizaPortal dt inimigos portal = portal { ondasPortal = novasOndas }
+  where
+    novasOndas = map (atualizaOnda dt) (ondasPortal portal)
+
+-- Atualiza o estado de uma onda de inimigos
+atualizaOnda :: Tempo -> Onda -> Onda
+atualizaOnda dt onda
+  | entradaOnda onda > 0 = onda { entradaOnda = entradaOnda onda - dt }
+  | tempoOnda onda > 0 = onda { tempoOnda = tempoOnda onda - dt }
+  | not (null (inimigosOnda onda)) = onda { inimigosOnda = tail (inimigosOnda onda) }
+  | otherwise = onda
+
+-- Determina o delta de movimento com base na direção
+direcaoParaDelta :: Direcao -> (Float, Float)
+direcaoParaDelta Norte = (0, -1)
+direcaoParaDelta Sul   = (0, 1)
+direcaoParaDelta Este  = (1, 0)
+direcaoParaDelta Oeste = (-1, 0)
+
+-- Aplica os efeitos de projéteis aos inimigos
 aplicaEfeitosProjetis :: Inimigo -> Inimigo
 aplicaEfeitosProjetis inimigo = foldl aplicaEfeito inimigo (projeteisInimigo inimigo)
   where
-    aplicaEfeito inimigo (Projetil Fogo (Finita t)) = inimigo {vidaInimigo = vidaInimigo inimigo - 5 * min t 1}
-    aplicaEfeito inimigo (Projetil Gelo _) = inimigo {velocidadeInimigo = 0}
-    aplicaEfeito inimigo (Projetil Resina _) = inimigo {velocidadeInimigo = velocidadeInimigo inimigo * 0.5}
+    aplicaEfeito inimigo (Projetil Fogo (Finita t)) = 
+      inimigo {vidaInimigo = vidaInimigo inimigo - 5 * min t 1}
+    aplicaEfeito inimigo (Projetil Gelo _) = 
+      inimigo {velocidadeInimigo = 0} -- Congela o inimigo
+    aplicaEfeito inimigo (Projetil Resina _) = 
+      inimigo {velocidadeInimigo = velocidadeInimigo inimigo * 0.5} -- Reduz velocidade
     aplicaEfeito inimigo _ = inimigo
 
--- Movimenta os inimigos com base na sua direção e velocidade.
-moveInimigo :: Tempo -> Jogo -> Inimigo -> Inimigo
-moveInimigo deltaTempo jogo inimigo@Inimigo {posicaoInimigo = (x, y), direcaoInimigo = direcao, velocidadeInimigo = velocidade} =
-  case direcao of
-    Norte -> inimigo {posicaoInimigo = (x, y - velocidade * deltaTempo)}
-    Sul   -> inimigo {posicaoInimigo = (x, y + velocidade * deltaTempo)}
-    Este  -> inimigo {posicaoInimigo = (x + velocidade * deltaTempo, y)}
-    Oeste -> inimigo {posicaoInimigo = (x - velocidade * deltaTempo, y)}
-
--- Atualiza as torres: dispara projéteis e aplica dano aos inimigos no alcance.
-atualizaEstadoTorres :: Tempo -> [Torre] -> [Inimigo] -> ([Torre], [Inimigo])
-atualizaEstadoTorres deltaTempo torres inimigos = (torresAtualizadas, inimigosAtualizados)
-  where
-    torresComCooldown = map (\torre -> torre {tempoTorre = max 0 (tempoTorre torre - deltaTempo)}) torres
-    (inimigosAtualizados, torresAtualizadas) = foldl (\(inimigos, torres) torre -> let (inimigos', torre') = disparaProjetilTorre torre inimigos in (inimigos', torres ++ [torre'])) (inimigos, []) torresComCooldown
-
-disparaProjetilTorre :: Torre -> [Inimigo] -> ([Inimigo], Torre)
-disparaProjetilTorre torre inimigos
-  | tempoTorre torre > 0 = (inimigos, torre) -- Torre ainda em cooldown
-  | otherwise =
-      let alvos = take (rajadaTorre torre) (inimigosNoAlcance torre inimigos)
-          inimigosAtingidos = map (atingeInimigo torre) alvos
-      in (inimigosAtingidos ++ filter (`notElem` alvos) inimigos, torre {tempoTorre = cicloTorre torre})
-
--- Atualiza os portais: ativa novas ondas de inimigos.
-atualizaEstadoPortais :: Tempo -> [Portal] -> [Inimigo] -> Jogo -> [Portal]
-atualizaEstadoPortais deltaTempo portais inimigos jogo = map atualizaPortal portais
-  where
-    atualizaPortal portal@Portal {ondasPortal = ondas} =
-      portal {ondasPortal = map atualizaOnda ondas}
-      where
-        atualizaOnda onda@Onda {tempoOnda = torre, inimigosOnda = inimigosOnda'} =
-          if torre <= 0 && not (null inimigosOnda')
-            then onda {inimigosOnda = tail inimigosOnda', tempoOnda = cicloOnda onda, entradaOnda = max 0 (entradaOnda onda - deltaTempo)}
-            else onda {tempoOnda = max 0 (torre - deltaTempo)}
-
---tarefa 3 atualizada-- 
+--tarefa 3 concluída--
