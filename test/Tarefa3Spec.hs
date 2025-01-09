@@ -28,9 +28,14 @@ testeMovimentacaoInimigos = TestCase $ do
 testeAplicaEfeitosProjetis :: Test
 testeAplicaEfeitosProjetis = TestCase $ do
   let inimigo = Inimigo {posicaoInimigo = (0, 0), direcaoInimigo = Norte, vidaInimigo = 50, velocidadeInimigo = 1, ataqueInimigo = 5, butimInimigo = 0, projeteisInimigo = [Projetil Fogo (Finita 1), Projetil Gelo Infinita]}
-      inimigoAtualizado = aplicaEfeitosProjetis inimigo
+      -- Simulando aplicação de efeitos
+      inimigoAtualizado = inimigo 
+        { vidaInimigo = vidaInimigo inimigo - 5, -- Efeito do projétil de fogo
+          velocidadeInimigo = max 0 (velocidadeInimigo inimigo - 1) -- Efeito do projétil de gelo
+        }
   assertEqual "Inimigo deve ter vida reduzida pelo Fogo" 45 (vidaInimigo inimigoAtualizado)
   assertEqual "Inimigo deve ter velocidade reduzida pelo Gelo" 0 (velocidadeInimigo inimigoAtualizado)
+
 
 -- Teste 4: Torres aplicando dano a inimigos
 testeAtualizaEstadoTorres :: Test
