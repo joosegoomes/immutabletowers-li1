@@ -9,11 +9,11 @@ data MundoJogo = MundoJogo
    {estado :: Jogo,        -- Estado atual do jogo
     imagemMenu :: Picture,       -- Imagem para o menu inicial
     imagemTorreFogo :: Picture,  -- Imagem da torre de fogo
-    imagemTorreGelo :: Picture,
-    imagemTorreResina :: Picture,
-    imagemInimigo :: Picture,
-    imagemPortal :: Picture,
-    imagemBase :: Picture}   -- Imagem da torre de gelo
+    imagemTorreGelo :: Picture,  -- Imagem da torre de gelo
+    imagemTorreResina :: Picture, -- Imagem da torre de resina
+    imagemInimigo :: Picture, -- Imagem do inimigo
+    imagemPortal :: Picture, -- Imagem do portal
+    imagemBase :: Picture}  -- Imagem da base
 
 desenha :: Jogo -> Imagens -> Picture
 desenha jogo imagens =
