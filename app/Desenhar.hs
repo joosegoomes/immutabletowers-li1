@@ -4,10 +4,6 @@ import Graphics.Gloss
 import ImmutableTowers
 import LI12425
 
-<<<<<<< HEAD
-desenha :: ImmutableTowers -> Picture
-desenha _ = Translate (-450) 0 $ Scale 0.5 0.5 $ Text "Welcome to Immutable Towers!"
-=======
 -- | Estrutura principal do jogo
 data MundoJogo = MundoJogo
    {estado :: Jogo,        -- Estado atual do jogo
@@ -111,4 +107,3 @@ desenharBase base imagemBase =
     (posX, posY) = ajustarPosicao (posicaoBase base)
     ajustarPosicao (x, y) =
       (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
->>>>>>> d4df4ee02325ffcc2418ea8f8aff7b004d84705f
