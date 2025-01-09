@@ -27,7 +27,7 @@ desenha jogo imagens =
 -- | Exemplo de mapa 10x10
 mapa :: Mapa
 mapa =
-  [ [a, t, a, a, r, r, a, a, a, a],
+   [[a, t, a, a, r, r, a, a, a, a],
     [a, t, a, a, a, a, a, a, a, a],
     [r, t, r, a, a, a, a, a, a, a],
     [r, t, r, a, r, r, a, a, a, a],
@@ -36,8 +36,7 @@ mapa =
     [r, r, a, r, t, r, r, r, t, r],
     [r, r, a, a, t, r, r, r, t, r],
     [r, a, a, a, t, a, a, r, t, r],
-    [a, a, a, a, t, a, a, r, t, t]
-  ]
+    [a, a, a, a, t, a, a, r, t, t]]
   where
     t = Terra
     r = Relva
@@ -69,24 +68,21 @@ desenharTerreno terreno x y = translate posX posY $ color (corTerreno terreno) $
 -- | Desenhar o mapa inteiro
 desenharMapa :: Mapa -> Picture
 desenharMapa mapa =
-  pictures [desenharTerreno terreno (fromIntegral x) (fromIntegral y)
-           | (linha, y) <- zip mapa [0..], (terreno, x) <- zip linha [0..]]
+  pictures [desenharTerreno terreno (fromIntegral x) (fromIntegral y) | (linha, y) <- zip mapa [0..], (terreno, x) <- zip linha [0..]]
 
 desenharInimigos :: [Inimigo] -> Picture -> Picture
 desenharInimigos inimigos imagemInimigo =
   pictures [translate posX posY imagemInimigo | inimigo <- inimigos, let (posX, posY) = ajustarPosicao (posicaoInimigo inimigo)]
   where
     ajustarPosicao (x, y) =
-      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2),
-       -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
+      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
 
 desenharPortais :: [Portal] -> Picture -> Picture
 desenharPortais portais imagemPortal =
   pictures [translate posX posY imagemPortal | portal <- portais, let (posX, posY) = ajustarPosicao (posicaoPortal portal)]
   where
     ajustarPosicao (x, y) =
-      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2),
-       -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
+      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
 
 desenharTorres :: [Torre] -> Picture -> Picture -> Picture -> Picture
 desenharTorres torres imagemFogo imagemGelo imagemResina =
@@ -102,8 +98,7 @@ desenharTorres torres imagemFogo imagemGelo imagemResina =
           | tipoProjetil (projetilTorre t) == Resina = imagemResina
           | otherwise = blank
     ajustarPosicao (x, y) =
-      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2),
-       -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
+      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
 
 desenharBase :: Base -> Picture -> Picture
 desenharBase base imagemBase =
@@ -111,5 +106,4 @@ desenharBase base imagemBase =
   where
     (posX, posY) = ajustarPosicao (posicaoBase base)
     ajustarPosicao (x, y) =
-      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2),
-       -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
+      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))

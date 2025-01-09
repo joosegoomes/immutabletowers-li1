@@ -38,13 +38,12 @@ creditosSuficientes creditos it = creditosBase (baseJogo (estadoJogo it)) >= cre
 -- Atualiza os créditos e adiciona a torre comprada
 atualizaCreditosETorres :: Creditos -> Torre -> ImmutableTowers -> ImmutableTowers
 atualizaCreditosETorres creditos torre it =
-  it { estadoJogo = jogoAtualizado }
+  it {estadoJogo = jogoAtualizado}
   where
     jogo = estadoJogo it
     jogoAtualizado = jogo
-      { baseJogo = (baseJogo jogo) { creditosBase = creditosBase (baseJogo jogo) - creditos },
-        torresJogo = torre : torresJogo jogo
-      }
+       {baseJogo = (baseJogo jogo) { creditosBase = creditosBase (baseJogo jogo) - creditos },
+        torresJogo = torre : torresJogo jogo}
 
 -- Verifica se uma torre da loja foi clicada
 encontraTorreNaLoja :: Posicao -> [(Creditos, Torre)] -> Maybe (Creditos, Torre)
@@ -62,10 +61,10 @@ posDentroArea (x, y) (cx, cy) =
 colocaTorreNoMapa :: Posicao -> ImmutableTowers -> ImmutableTowers
 colocaTorreNoMapa pos it@(ImmutableTowers {estadoJogo = jogo, torreDestacada = Just torre})
   | posicaoValida pos (mapaJogo jogo) (torresJogo jogo) =
-      it { estadoJogo = jogo { torresJogo = novaTorre : torresJogo jogo } }
+      it {estadoJogo = jogo {torresJogo = novaTorre : torresJogo jogo}}
   | otherwise = it
   where
-    novaTorre = torre { posicaoTorre = pos }
+    novaTorre = torre {posicaoTorre = pos}
 colocaTorreNoMapa _ it = it -- Sem torre selecionada
 
 -- Verifica se uma posição é válida para colocar a torre

@@ -23,7 +23,7 @@ estadoInicialJogo :: Jogo --trocar os valores
 estadoInicialJogo = Jogo
   {baseJogo = Base
       {vidaBase = 100.0,
-       posicaoBase = (5.0, 9.0), -- Posição inicial no mapa
+       posicaoBase = (0.0, 0.0), -- Posição inicial no mapa
        creditosBase = 100},
    portaisJogo = [Portal
       {posicaoPortal = (0.0, 0.0), -- Posição do portal inicial
@@ -37,25 +37,23 @@ estadoInicialJogo = Jogo
                projeteisInimigo = [] }],
                cicloOnda = 3.0,
                tempoOnda = 3.0,
-               entradaOnda = 0.0 }] }],
+               entradaOnda = 0.0}] }],
     torresJogo = [],
     mapaJogo = inicialMapa,
     inimigosJogo = [],
     lojaJogo = [
       (100, Torre
-        {posicaoTorre = (3.0, 3.0),
+        {posicaoTorre = (0.0, 0.0),
          danoTorre = 20.0,
          alcanceTorre = 5.0,
          rajadaTorre = 1,
          cicloTorre = 1.5,
          tempoTorre = 0.0,
          projetilTorre = Projetil
-            { tipoProjetil = Fogo,
-              duracaoProjetil = Finita 2.0
-            }
-        }),
+             {tipoProjetil = Fogo,
+              duracaoProjetil = Finita 2.0} }),
       (150, Torre
-        { posicaoTorre = (5.0, 5.0),
+         {posicaoTorre = (0.0, 0.0),
           danoTorre = 10.0,
           alcanceTorre = 4.0,
           rajadaTorre = 1,
@@ -63,10 +61,9 @@ estadoInicialJogo = Jogo
           tempoTorre = 0.0,
           projetilTorre = Projetil
             {tipoProjetil = Gelo,
-             duracaoProjetil = Finita 1.5}
-        }),
+             duracaoProjetil = Finita 1.5} }),
       (50, Torre
-         {posicaoTorre = (7.0, 7.0),
+         {posicaoTorre = (0.0, 0.0),
           danoTorre = 5.0,
           alcanceTorre = 6.0,
           rajadaTorre = 1,
@@ -74,23 +71,19 @@ estadoInicialJogo = Jogo
           tempoTorre = 0.0,
           projetilTorre = Projetil
             {tipoProjetil = Resina,
-             duracaoProjetil = Continua}
-              })]
-        }
+             duracaoProjetil = Continua} })] }
 
 torreDestacada :: Maybe Torre
 torreDestacada = Just Torre
-  { posicaoTorre = (0, 0),         -- Posição neutra (fora do mapa ou inicial)
+   {posicaoTorre = (0, 0),         -- Posição neutra (fora do mapa ou inicial)
     danoTorre = 0,                 -- Sem dano até ser personalizada
     alcanceTorre = 0,              -- Sem alcance inicial
     rajadaTorre = 0,               -- Não dispara até ser configurada
     cicloTorre = 0,                -- Sem ciclo até ser ajustada
     tempoTorre = 0,                -- Sem tempo de espera
     projetilTorre = Projetil
-      { tipoProjetil = Fogo,       -- Tipo inicial, pode ser alterado pelo jogador
-        duracaoProjetil = Infinita -- Duração infinita apenas como padrão
-      }
-  }
+       {tipoProjetil = Fogo,       -- Tipo inicial, pode ser alterado pelo jogador
+        duracaoProjetil = Infinita}} -- Duração infinita apenas como padrão
 
 -- Carrega as imagens BMP para uso no jogo
 imagensJogo :: IO [Picture]
