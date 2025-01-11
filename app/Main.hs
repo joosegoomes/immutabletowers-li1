@@ -57,9 +57,9 @@ main = do
   let imagemMapa = translate (-(fromIntegral largura / 1.45)) (fromIntegral altura / 1.48) (desenhaMapa mapa)
   -- Carrega as imagens
   imagemBase <- desenhaBase "imagensBMP/BaseBMP.bmp" 5 5  
-  imagemVida <- desenhaVida "imagensBMP/HPui.bmp" 16 (-3)
+  imagemVida <- desenhaVida "imagensBMP/vida.bmp" 16 (-3)
   imagemMoeda <- desenhaMoeda "imagensBMP/CreditosBMP.bmp" 14 (0)
-  imagemTabua <- desenhaTabua "imagensBMP/woodenplank.bmp" 17 (0)
+  imagemTabua <- desenhaTabua "imagensBMP/Tabua.bmp" 17 (0)
   imagemPortal1 <- desenhaPortal "imagensBMP/PortalBMP.bmp" 7 3
   imagemPortal2 <- desenhaPortal "imagensBMP/PortalBMP.bmp" 10 12
 
