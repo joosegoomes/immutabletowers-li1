@@ -12,15 +12,18 @@ import LI12425
 import Tarefa1
 import Tarefa2
 
--- Atualiza o estado do jogo em função do tempo decorrido
 atualizaJogo :: Tempo -> Jogo -> Jogo
 atualizaJogo tempo jogo = 
-  jogo {inimigosJogo = novosInimigos,
-        torresJogo = novasTorres,
-        portaisJogo = novosPortais}
+  jogo { inimigosJogo = novosInimigos,
+         torresJogo   = novasTorres,
+         baseJogo     = novaBase,
+         portaisJogo  = novosPortais }
   where
-    -- Atualizar inimigos e base
+    -- Atualizar inimigos com movimento e aplicar efeitos
     novosInimigos = atualizaInimigos tempo (inimigosJogo jogo) (baseJogo jogo) (mapaJogo jogo)
+
+    -- Atualizar base com base no dano causado pelos inimigos
+    novaBase = foldl atualizaBase (baseJogo jogo) novosInimigos
 
     -- Atualizar torres com base nos novos estados dos inimigos
     novasTorres = map (atualizaTorre tempo novosInimigos) (torresJogo jogo)
@@ -30,17 +33,17 @@ atualizaJogo tempo jogo =
 
 -- Atualiza os inimigos no mapa
 atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> [Inimigo]
-atualizaInimigos tempo inimigos base mapa = map (atualizaInimigo tempo base mapa) inimigos
+atualizaInimigos tempo inimigos base mapa = 
+  [aplicaEfeitosProjeteis (movimentaInimigo tempo mapa inimigo) | inimigo <- inimigos]
 
 atualizaInimigo :: Tempo -> Base -> Mapa -> Inimigo -> Inimigo
 atualizaInimigo tempo base mapa inimigo
    = movimentaInimigo tempo mapa inimigo
 
--- Atualiza a base ao receber dano de inimigos
+-- Atualiza a base ao receber dano de inimigos que chegaram
 atualizaBase :: Base -> Inimigo -> Base
-atualizaBase base inimigo 
-  | vidaInimigo inimigo <= 0 = base {creditosBase = creditosBase base + butimInimigo inimigo}
-  | chegouBase inimigo (posicaoBase base) = base {vidaBase = vidaBase base - ataqueInimigo inimigo}
+atualizaBase base inimigo
+  | chegouBase inimigo (posicaoBase base) = base { vidaBase = max 0 (vidaBase base - ataqueInimigo inimigo) }
   | otherwise = base
 
 -- Função auxiliar para verificar se o inimigo chegou à base
