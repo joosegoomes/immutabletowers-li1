@@ -23,6 +23,11 @@ largura, altura :: Int
 largura = 1300
 altura = 700
 
+qualquercoisa :: Mapa -> Posicao -> [(Terreno,Posicao)]
+qualquercoisa [] _ = []
+qualquercoisa ([]:xs) (x,y) = qualquercoisa xs (0,y+1)
+qualquercoisa ((h:hs):ts) (x,y) = (h,(x,y)) : qualquercoisa (hs:ts) (x+1,y) 
+
 -- | Ajusta o tamanho de cada Terreno de acordo com o mapa
 tamanhoTerreno :: Float
 tamanhoTerreno = min (fromIntegral largura / fromIntegral (length (head mapa))) (fromIntegral altura / fromIntegral (length mapa)) * 1.1 
@@ -34,35 +39,35 @@ corDoTerreno Relva = makeColorI 34 139 34 255 -- Cor da Relva
 corDoTerreno Agua  = makeColorI 70 130 180 255 -- Cor da Agua
 
 -- | Desenha um unico terreno
-desenhaterreno :: Terreno -> Float -> Float -> Picture
-desenhaterreno terreno x y = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color (corDoTerreno terreno) $ rectangleSolid tamanhoTerreno tamanhoTerreno
+desenhaterreno :: (Terreno,Posicao) -> Picture
+desenhaterreno (terreno, (x,y)) = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color (corDoTerreno terreno) $ rectangleSolid tamanhoTerreno tamanhoTerreno
 
 -- | Desenha o Mapa inteiro
 desenhaMapa :: Mapa -> Picture
-desenhaMapa mapa = pictures [desenhaterreno terreno (fromIntegral x) (fromIntegral y) | (linha, y) <- zip mapa [0..], (terreno, x) <- zip linha [0..]]
+desenhaMapa mapa = pictures (map desenhaterreno (qualquercoisa mapa (0,0)))
 
 desenhaBase :: FilePath -> Int -> Int -> IO Picture
 desenhaBase ficheiroImagem x y = do
   baseImagem <- loadBMP ficheiroImagem
-  let imagemAjustada = scale (0.2) (0.2) baseImagem
-      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 4.15
-      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 2.6
-  return $ translate posX posY imagemAjustada
+  let imagemAjustada = scale (0.15) (0.15) baseImagem
+      posX = fromIntegral x * tamanhoTerreno 
+      posY = -fromIntegral y * tamanhoTerreno 
+  return $ translate posX (posY) imagemAjustada
 
 desenhaPortal :: FilePath -> Int -> Int -> IO Picture
 desenhaPortal ficheiroImagem x y = do
   portalImagem <- loadBMP ficheiroImagem
   let imagemAjustada = scale (0.07) (0.07) portalImagem
-      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 0.981
-      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 1.02
+      posX = fromIntegral x * tamanhoTerreno 
+      posY = -fromIntegral y * tamanhoTerreno
   return $ translate posX posY imagemAjustada
 
 desenhaTorre :: FilePath -> Int -> Int -> IO Picture
 desenhaTorre ficheiroImagem x y = do
   torreImagem <- loadBMP ficheiroImagem
   let imagemAjustada = scale (0.15) (0.15) torreImagem
-      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 4.10
-      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 2.6
+      posX = fromIntegral x * tamanhoTerreno 
+      posY = -fromIntegral y * tamanhoTerreno 
   return $ translate posX posY imagemAjustada
 
 desenhaVida :: FilePath -> Int -> Int -> IO Picture
@@ -72,7 +77,13 @@ desenhaVida ficheiroImagem x y = do
       posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 3
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.5 
   return $ translate posX posY imagemAjustada
-  
+
+escreveVida :: Base -> Picture
+escreveVida base = translate 675 404 $ scale 0.2 0.2 $ color black $ text $ show (vidaBase base)
+
+escreveCreditos :: Base -> Picture
+escreveCreditos base = translate 760 190 $ scale 0.2 0.2 $ color yellow $ text $ show (creditosBase base)
+
 desenhaMoeda :: FilePath -> Int -> Int -> IO Picture
 desenhaMoeda ficheiroImagem x y = do
   moedaImagem <- loadBMP ficheiroImagem
@@ -99,3 +110,8 @@ desenhaLoja ficheiroImagem1 ficheiroImagem2 mapPicture = do
     [mapPicture, 
      translate (-300) (-fromIntegral altura / 2) imagemAjustada1, 
      translate (200) (-fromIntegral altura / 2) imagemAjustada2] -- Ajusta a posicao
+
+desenhaInimigo :: Inimigo -> Picture 
+desenhaInimigo inimigo = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color red $ circleSolid 10
+  where
+    (x, y) = posicaoInimigo inimigo

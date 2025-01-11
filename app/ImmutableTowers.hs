@@ -4,6 +4,4 @@ import Graphics.Gloss
 import LI12425
 
 data ImmutableTowers = ImmutableTowers
-   {creditos :: Creditos,
-   torreSelecionada :: Maybe Torre,
-   mapa :: Mapa}
+   {estadoJogo :: Jogo}
