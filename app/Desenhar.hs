@@ -23,10 +23,10 @@ largura, altura :: Int
 largura = 1300
 altura = 700
 
-qualquercoisa :: Mapa -> Posicao -> [(Terreno,Posicao)]
-qualquercoisa [] _ = []
-qualquercoisa ([]:xs) (x,y) = qualquercoisa xs (0,y+1)
-qualquercoisa ((h:hs):ts) (x,y) = (h,(x,y)) : qualquercoisa (hs:ts) (x+1,y) 
+coordenadas :: Mapa -> Posicao -> [(Terreno,Posicao)]
+coordenadas [] _ = []
+coordenadas ([]:linhas) (x,y) = coordenadas linhas (0,y+1)
+coordenadas ((terreno:terrenos):linhas) (x,y) = (terreno,(x,y)) : coordenadas (terrenos:linhas) (x+1,y) 
 
 -- | Ajusta o tamanho de cada Terreno de acordo com o mapa
 tamanhoTerreno :: Float
@@ -44,7 +44,7 @@ desenhaterreno (terreno, (x,y)) = translate (x * tamanhoTerreno) (-y * tamanhoTe
 
 -- | Desenha o Mapa inteiro
 desenhaMapa :: Mapa -> Picture
-desenhaMapa mapa = pictures (map desenhaterreno (qualquercoisa mapa (0,0)))
+desenhaMapa mapa = pictures (map desenhaterreno (coordenadas mapa (0,0)))
 
 desenhaBase :: FilePath -> Int -> Int -> IO Picture
 desenhaBase ficheiroImagem x y = do
@@ -100,16 +100,19 @@ desenhaTabua ficheiroImagem x y = do
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.4
   return $ translate posX posY imagemAjustada
 
-desenhaLoja :: FilePath -> FilePath -> Picture -> IO Picture
-desenhaLoja ficheiroImagem1 ficheiroImagem2 mapPicture = do
-  torrefogo <- loadBMP ficheiroImagem1 
-  torregelo <- loadBMP ficheiroImagem2 
-  let imagemAjustada1 = scale 0.3 0.3 torrefogo -- Ajusta o tamanho
-  let imagemAjustada2 = scale 0.3 0.3 torregelo 
+desenhaLoja :: FilePath -> FilePath -> FilePath -> Picture -> IO Picture
+desenhaLoja ficheiroImagem1 ficheiroImagem2 ficheiroImagem3 mapPicture = do
+  torreFogo <- loadBMP ficheiroImagem1 
+  torreGelo <- loadBMP ficheiroImagem2 
+  torreResina <- loadBMP ficheiroImagem3
+  let imagemAjustada1 = scale 0.3 0.3 torreFogo -- Ajusta o tamanho
+  let imagemAjustada2 = scale 0.3 0.3 torreGelo 
+  let imagemAjustada3 = scale 0.3 0.3 torreResina
   return $ pictures 
     [mapPicture, 
-     translate (-300) (-fromIntegral altura / 2) imagemAjustada1, 
-     translate (200) (-fromIntegral altura / 2) imagemAjustada2] -- Ajusta a posicao
+     translate (-250) (-fromIntegral altura / 2) imagemAjustada1, 
+     translate (200) (-fromIntegral altura / 2) imagemAjustada2,
+     translate (-700) (-fromIntegral altura / 2) imagemAjustada3] -- Ajusta a posicao
 
 desenhaInimigo :: Inimigo -> Picture 
 desenhaInimigo inimigo = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color red $ circleSolid 10
