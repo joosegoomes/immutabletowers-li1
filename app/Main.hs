@@ -6,6 +6,7 @@ import Graphics.Gloss
 import ImmutableTowers
 import LI12425
 import Tempo
+import Graphics.Gloss.Interface.IO.Game
 
 janela :: Display
 janela = InWindow "Immutable Towers" (1920, 1080) (0, 0)
@@ -62,6 +63,7 @@ estadoInicialJogo = Jogo
 
 main :: IO ()
 main = do
+  menuPicture <- loadBMP "imagensBMP/MainMenu.bmp"
   let imagemMapa = (desenhaMapa mapa)
   -- Carrega as imagens
   imagemBase <- desenhaBase "imagensBMP/BaseBMP.bmp" 13 8 
@@ -74,9 +76,10 @@ main = do
   -- Carrega o produto final
   let uiPictures = pictures [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, pictures (map desenhaInimigo (inimigosJogo estadoInicialJogo))],
                              pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoInicialJogo), escreveCreditos (baseJogo estadoInicialJogo)]]
-  uiAcabada <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" uiPictures
+  uiAcabada <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" "imagensBMP/TorreResinaLoja.bmp" uiPictures
+
+  let inicialCompleto = JogoCompleto MainMenu estadoInicialJogo
 
   play janela fundo fr it (return uiAcabada) reageEventos reageTempo
-
 
 
