@@ -1,109 +1,93 @@
 module Desenhar where
-
 import Graphics.Gloss
-import ImmutableTowers
 import LI12425
 
--- | Estrutura principal do jogo
-data MundoJogo = MundoJogo
-   {estado :: Jogo,        -- Estado atual do jogo
-    imagemMenu :: Picture,       -- Imagem para o menu inicial
-    imagemTorreFogo :: Picture,  -- Imagem da torre de fogo
-    imagemTorreGelo :: Picture,  -- Imagem da torre de gelo
-    imagemTorreResina :: Picture, -- Imagem da torre de resina
-    imagemInimigo :: Picture, -- Imagem do inimigo
-    imagemPortal :: Picture, -- Imagem do portal
-    imagemBase :: Picture}  -- Imagem da base
-
-desenha :: Jogo -> Imagens -> Picture
-desenha jogo imagens =
-  pictures
-     [desenharMapa (mapaJogo jogo),
-      desenharInimigos (inimigosJogo jogo) (inimigoPNG imagens),
-      desenharPortais (portaisJogo jogo) (portalPNG imagens),
-      desenharTorres (torresJogo jogo) (torreFogo imagens) (torreGelo imagens) (torreResina imagens),
-      desenharBase (baseJogo jogo) (basePNG imagens)]
-
--- | Exemplo de mapa 10x10
 mapa :: Mapa
 mapa =
-   [[a, t, a, a, r, r, a, a, a, a],
-    [a, t, a, a, a, a, a, a, a, a],
-    [r, t, r, a, a, a, a, a, a, a],
-    [r, t, r, a, r, r, a, a, a, a],
-    [r, t, r, r, r, r, r, r, r, a],
-    [t, t, t, t, t, t, t, t, t, r],
-    [r, r, a, r, t, r, r, r, t, r],
-    [r, r, a, a, t, r, r, r, t, r],
-    [r, a, a, a, t, a, a, r, t, r],
-    [a, a, a, a, t, a, a, r, t, t]]
+  [[a, t, a, a, r, r, a, a, a, r, t, t, t, r, r, r, r, a, a, a],
+   [a, t, a, a, a, a, a, a, a, r, t, r, t, t, r, r, r, r, a, a],
+   [r, t, r, a, a, a, a, a, a, a, t, r, r, t, t, r, r, r, a, a],
+   [r, t, r, a, r, r, a, a, a, a, t, a, a, a, t, t, r, r, r, a],
+   [r, t, r, r, r, r, r, r, r, a, t, a, a, a, r, t, t, r, r, a],
+   [r, t, t, t, t, t, t, t, t, r, t, r, a, a, r, r, t, t, r, r],
+   [r, r, a, r, t, r, r, r, t, r, t, r, a, a, r, r, r, t, t, r],
+   [r, r, a, a, t, r, r, r, t, r, t, r, a, a, r, r, r, r, t, r],
+   [r, a, a, a, t, a, a, r, t, r, t, r, a, t, t, t, t, t, t, r],
+   [a, a, a, a, t, a, a, r, t, t, t, r, a, a, r, r, r, r, r, r]]
   where
-    t = Terra
-    r = Relva
-    a = Agua
+   t = Terra
+   r = Relva
+   a = Agua
 
--- | Dimensões da janela
-larguraJanela, alturaJanela :: Int
-larguraJanela = 1920
-alturaJanela = 1080
+largura, altura :: Int
+largura = 1300
+altura = 700
 
--- | Dimensões de cada Terreno no mapa
-larguraTerreno, alturaTerreno :: Float
-larguraTerreno = fromIntegral larguraJanela / fromIntegral (length (head mapa))
-alturaTerreno = fromIntegral alturaJanela / fromIntegral (length mapa)
+-- | Ajusta o tamanho de cada Terreno de acordo com o mapa
+tamanhoTerreno :: Float
+tamanhoTerreno = min (fromIntegral largura / fromIntegral (length (head mapa))) (fromIntegral altura / fromIntegral (length mapa)) * 1.1 
 
--- | Converter tipo de Terreno para cor
-corTerreno :: Terreno -> Color
-corTerreno Terra = makeColorI 139 69 19 255 -- Castanho para caminho
-corTerreno Relva = makeColorI 34 139 34 255 -- Verde para relva
-corTerreno Agua  = makeColorI 70 130 180 255 -- Azul para água
+-- | Cria cores para os diferentes tipos de Terreno
+corDoTerreno :: Terreno -> Color
+corDoTerreno Terra = makeColorI 139 69 19 255 -- Cor da Terra
+corDoTerreno Relva = makeColorI 34 139 34 255 -- Cor da Relva
+corDoTerreno Agua  = makeColorI 70 130 180 255 -- Cor da Agua
 
--- | Desenhar um Terreno na sua posição
-desenharTerreno :: Terreno -> Float -> Float -> Picture
-desenharTerreno terreno x y = translate posX posY $ color (corTerreno terreno) $ rectangleSolid larguraTerreno alturaTerreno
-  where
-    posX = x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2)
-    posY = -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2)
+-- | Desenha um unico terreno
+desenhaterreno :: Terreno -> Float -> Float -> Picture
+desenhaterreno terreno x y = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color (corDoTerreno terreno) $ rectangleSolid tamanhoTerreno tamanhoTerreno
 
--- | Desenhar o mapa inteiro
-desenharMapa :: Mapa -> Picture
-desenharMapa mapa =
-  pictures [desenharTerreno terreno (fromIntegral x) (fromIntegral y) | (linha, y) <- zip mapa [0..], (terreno, x) <- zip linha [0..]]
+-- | Desenha o Mapa inteiro
+desenhaMapa :: Mapa -> Picture
+desenhaMapa mapa = pictures [desenhaterreno terreno (fromIntegral x) (fromIntegral y) | (row, y) <- zip mapa [0..], (terreno, x) <- zip row [0..]]
 
-desenharInimigos :: [Inimigo] -> Picture -> Picture
-desenharInimigos inimigos imagemInimigo =
-  pictures [translate posX posY imagemInimigo | inimigo <- inimigos, let (posX, posY) = ajustarPosicao (posicaoInimigo inimigo)]
-  where
-    ajustarPosicao (x, y) =
-      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
+desenhaBase :: FilePath -> Int -> Int -> IO Picture
+desenhaBase imagePath x y = do
+  baseImagem <- loadBMP imagePath
+  let imagemAjustada = scale (0.2) (0.2) baseImagem
+      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 4.15
+      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 2.6
+  return $ translate posX posY imagemAjustada
 
-desenharPortais :: [Portal] -> Picture -> Picture
-desenharPortais portais imagemPortal =
-  pictures [translate posX posY imagemPortal | portal <- portais, let (posX, posY) = ajustarPosicao (posicaoPortal portal)]
-  where
-    ajustarPosicao (x, y) =
-      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
+desenhaPortal :: FilePath -> Int -> Int -> IO Picture
+desenhaPortal imagePath x y = do
+  portalImagem <- loadBMP imagePath
+  let imagemAjustada = scale (0.07) (0.07) portalImagem
+      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 0.981
+      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 1.02
+  return $ translate posX posY imagemAjustada
 
-desenharTorres :: [Torre] -> Picture -> Picture -> Picture -> Picture
-desenharTorres torres imagemFogo imagemGelo imagemResina =
-  pictures [desenharTorre torre | torre <- torres]
-  where
-    desenharTorre torre =
-      translate posX posY (selecionarImagem torre)
-      where
-        (posX, posY) = ajustarPosicao (posicaoTorre torre)
-        selecionarImagem t
-          | tipoProjetil (projetilTorre t) == Fogo = imagemFogo
-          | tipoProjetil (projetilTorre t) == Gelo = imagemGelo
-          | tipoProjetil (projetilTorre t) == Resina = imagemResina
-          | otherwise = blank
-    ajustarPosicao (x, y) =
-      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
+desenhaVida :: FilePath -> Int -> Int -> IO Picture
+desenhaVida imagePath x y = do
+  vidaImagem <- loadBMP imagePath
+  let imagemAjustada = scale (1) (1) vidaImagem
+      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 3
+      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.5 
+  return $ translate posX posY imagemAjustada
+  
+desenhaMoeda :: FilePath -> Int -> Int -> IO Picture
+desenhaMoeda imagePath x y = do
+  moedaImagem <- loadBMP imagePath
+  let imagemAjustada = scale (0.15) (0.15) moedaImagem
+      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 3.15 
+      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.5 
+  return $ translate posX posY imagemAjustada
 
-desenharBase :: Base -> Picture -> Picture
-desenharBase base imagemBase =
-  translate posX posY imagemBase
-  where
-    (posX, posY) = ajustarPosicao (posicaoBase base)
-    ajustarPosicao (x, y) =
-      (x * larguraTerreno - (fromIntegral larguraJanela / 2) + (larguraTerreno / 2), -y * alturaTerreno + (fromIntegral alturaJanela / 2) - (alturaTerreno / 2))
+desenhaTabua :: FilePath -> Int -> Int -> IO Picture
+desenhaTabua imagePath x y = do
+  tabuaImagem <- loadBMP imagePath
+  let imagemAjustada = scale (0.3) (0.3) tabuaImagem
+      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 3  
+      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.4
+  return $ translate posX posY imagemAjustada
+
+desenhaLoja :: FilePath -> FilePath -> Picture -> IO Picture
+desenhaLoja imagePath1 imagePath2 mapPicture = do
+  torrefogo <- loadBMP imagePath1 
+  torregelo <- loadBMP imagePath2 
+  let imagemAjustada1 = scale 0.3 0.3 torrefogo -- Ajusta o tamanho
+  let imagemAjustada2 = scale 0.3 0.3 torregelo 
+  return $ pictures 
+    [mapPicture, 
+     translate (-300) (-fromIntegral altura / 2) imagemAjustada1, 
+     translate (200) (-fromIntegral altura / 2) imagemAjustada2] -- Ajusta a posicao
