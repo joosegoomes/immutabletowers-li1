@@ -39,52 +39,60 @@ desenhaterreno terreno x y = translate (x * tamanhoTerreno) (-y * tamanhoTerreno
 
 -- | Desenha o Mapa inteiro
 desenhaMapa :: Mapa -> Picture
-desenhaMapa mapa = pictures [desenhaterreno terreno (fromIntegral x) (fromIntegral y) | (row, y) <- zip mapa [0..], (terreno, x) <- zip row [0..]]
+desenhaMapa mapa = pictures [desenhaterreno terreno (fromIntegral x) (fromIntegral y) | (linha, y) <- zip mapa [0..], (terreno, x) <- zip linha [0..]]
 
 desenhaBase :: FilePath -> Int -> Int -> IO Picture
-desenhaBase imagePath x y = do
-  baseImagem <- loadBMP imagePath
+desenhaBase ficheiroImagem x y = do
+  baseImagem <- loadBMP ficheiroImagem
   let imagemAjustada = scale (0.2) (0.2) baseImagem
       posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 4.15
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 2.6
   return $ translate posX posY imagemAjustada
 
 desenhaPortal :: FilePath -> Int -> Int -> IO Picture
-desenhaPortal imagePath x y = do
-  portalImagem <- loadBMP imagePath
+desenhaPortal ficheiroImagem x y = do
+  portalImagem <- loadBMP ficheiroImagem
   let imagemAjustada = scale (0.07) (0.07) portalImagem
       posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 0.981
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 1.02
   return $ translate posX posY imagemAjustada
 
+desenhaTorre :: FilePath -> Int -> Int -> IO Picture
+desenhaTorre ficheiroImagem x y = do
+  torreImagem <- loadBMP ficheiroImagem
+  let imagemAjustada = scale (0.15) (0.15) torreImagem
+      posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 4.10
+      posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 2.6
+  return $ translate posX posY imagemAjustada
+
 desenhaVida :: FilePath -> Int -> Int -> IO Picture
-desenhaVida imagePath x y = do
-  vidaImagem <- loadBMP imagePath
+desenhaVida ficheiroImagem x y = do
+  vidaImagem <- loadBMP ficheiroImagem
   let imagemAjustada = scale (1) (1) vidaImagem
       posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 3
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.5 
   return $ translate posX posY imagemAjustada
   
 desenhaMoeda :: FilePath -> Int -> Int -> IO Picture
-desenhaMoeda imagePath x y = do
-  moedaImagem <- loadBMP imagePath
+desenhaMoeda ficheiroImagem x y = do
+  moedaImagem <- loadBMP ficheiroImagem
   let imagemAjustada = scale (0.15) (0.15) moedaImagem
       posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 3.15 
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.5 
   return $ translate posX posY imagemAjustada
 
 desenhaTabua :: FilePath -> Int -> Int -> IO Picture
-desenhaTabua imagePath x y = do
-  tabuaImagem <- loadBMP imagePath
+desenhaTabua ficheiroImagem x y = do
+  tabuaImagem <- loadBMP ficheiroImagem
   let imagemAjustada = scale (0.3) (0.3) tabuaImagem
       posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 3  
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.4
   return $ translate posX posY imagemAjustada
 
 desenhaLoja :: FilePath -> FilePath -> Picture -> IO Picture
-desenhaLoja imagePath1 imagePath2 mapPicture = do
-  torrefogo <- loadBMP imagePath1 
-  torregelo <- loadBMP imagePath2 
+desenhaLoja ficheiroImagem1 ficheiroImagem2 mapPicture = do
+  torrefogo <- loadBMP ficheiroImagem1 
+  torregelo <- loadBMP ficheiroImagem2 
   let imagemAjustada1 = scale 0.3 0.3 torrefogo -- Ajusta o tamanho
   let imagemAjustada2 = scale 0.3 0.3 torregelo 
   return $ pictures 

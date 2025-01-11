@@ -24,7 +24,7 @@ estadoInicialJogo = Jogo
   {baseJogo = Base
       {vidaBase = 1000.0,
        posicaoBase = (5, 5), -- Posição inicial no mapa
-       creditosBase = 75},
+       creditosBase = 150},
    portaisJogo = [Portal
       {posicaoPortal = (7, 3), -- Posição do portal inicial
        ondasPortal = [Onda {inimigosOnda = [Inimigo
