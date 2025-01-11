@@ -9,17 +9,18 @@ Módulo para a realização da Tarefa 3 de LI1 em 2024/25.
 module Tarefa3 where
 
 import LI12425
+import Tarefa1
+import Tarefa2
 
 -- Atualiza o estado do jogo em função do tempo decorrido
 atualizaJogo :: Tempo -> Jogo -> Jogo
 atualizaJogo tempo jogo = 
   jogo {inimigosJogo = novosInimigos,
         torresJogo = novasTorres,
-        baseJogo = novaBase,
         portaisJogo = novosPortais}
   where
     -- Atualizar inimigos e base
-    (novosInimigos, novaBase) = atualizaInimigos tempo (inimigosJogo jogo) (baseJogo jogo) (mapaJogo jogo)
+    novosInimigos = atualizaInimigos tempo (inimigosJogo jogo) (baseJogo jogo) (mapaJogo jogo)
 
     -- Atualizar torres com base nos novos estados dos inimigos
     novasTorres = map (atualizaTorre tempo novosInimigos) (torresJogo jogo)
@@ -28,18 +29,12 @@ atualizaJogo tempo jogo =
     novosPortais = map (atualizaPortal tempo) (portaisJogo jogo)
 
 -- Atualiza os inimigos no mapa
-atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> ([Inimigo], Base)
-atualizaInimigos dt inimigos base mapa = foldr processaInimigo ([], base) inimigos
-  where
-    processaInimigo :: Inimigo -> ([Inimigo], Base) -> ([Inimigo], Base)
-    processaInimigo inimigo (atualizados, baseAtual)
-      | vidaInimigo inimigo <= 0 = 
-          (atualizados, baseAtual {creditosBase = creditosBase baseAtual + butimInimigo inimigo})
-      | chegouBase inimigo (posicaoBase baseAtual) = 
-          (atualizados, baseAtual {vidaBase = vidaBase baseAtual - ataqueInimigo inimigo})
-      | otherwise = 
-          let inimigoAtualizado = aplicaEfeitosProjeteis $ movimentaInimigo dt mapa inimigo
-          in (inimigoAtualizado : atualizados, baseAtual)
+atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> [Inimigo]
+atualizaInimigos tempo inimigos base mapa = map (atualizaInimigo tempo base mapa) inimigos
+
+atualizaInimigo :: Tempo -> Base -> Mapa -> Inimigo -> Inimigo
+atualizaInimigo tempo base mapa inimigo
+   = movimentaInimigo tempo mapa inimigo
 
 -- Atualiza a base ao receber dano de inimigos
 atualizaBase :: Base -> Inimigo -> Base
@@ -54,20 +49,16 @@ chegouBase inimigo (xb, yb) =
   let (xi, yi) = posicaoInimigo inimigo
   in abs (xi - xb) < 0.5 && abs (yi - yb) < 0.5
 
-
 -- Movimenta o inimigo no mapa
 movimentaInimigo :: Tempo -> Mapa -> Inimigo -> Inimigo
-movimentaInimigo dt _ inimigo
-  | congelado inimigo = inimigo -- Inimigo congelado não se move
-  | otherwise =
-      inimigo { posicaoInimigo = (x + dx * velocidade * dt, y + dy * velocidade * dt) }
-  where
-    (x, y) = posicaoInimigo inimigo
-    (dx, dy) = direcaoParaDelta (direcaoInimigo inimigo)
-    velocidade = velocidadeInimigo inimigo * ajustaVelocidade (projeteisInimigo inimigo)
-
-    congelado :: Inimigo -> Bool
-    congelado = any (\projetil -> tipoProjetil projetil == Gelo) . projeteisInimigo
+movimentaInimigo tempo mapa inimigo = 
+  let (x, y) = posicaoInimigo inimigo
+  in if any (\p -> tipoProjetil p == Gelo) (projeteisInimigo inimigo) then inimigo
+     else case direcaoInimigo inimigo of
+          Norte -> if eTerra ( x, ( y) + 1) mapa then inimigo {posicaoInimigo = (x, y + velocidadeInimigo inimigo * tempo)} else if eTerra ( x + 1,   y) mapa then inimigo {direcaoInimigo = Este} else inimigo {direcaoInimigo = Oeste}
+          Sul -> if eTerra ( x, ( y) - 1) mapa then inimigo {posicaoInimigo = (x, y - velocidadeInimigo inimigo * tempo)} else if eTerra ( x + 1,   y) mapa then inimigo {direcaoInimigo = Este} else inimigo {direcaoInimigo = Oeste}
+          Este -> if eTerra ( x + 1,  y) mapa then inimigo {posicaoInimigo = (x + velocidadeInimigo inimigo * tempo, y)} else if eTerra ( x,   y + 1) mapa then inimigo {direcaoInimigo = Norte} else inimigo {direcaoInimigo = Sul}
+          Oeste -> if eTerra ( x - 1,  y) mapa then inimigo {posicaoInimigo = (x - velocidadeInimigo inimigo * tempo, y)} else if eTerra ( x,   y + 1) mapa then inimigo {direcaoInimigo = Norte} else inimigo {direcaoInimigo = Sul}
 
 -- Ajusta a velocidade do inimigo com base nos projéteis
 ajustaVelocidade :: [Projetil] -> Float
@@ -99,14 +90,6 @@ atualizaTorre dt inimigos torre
   | otherwise = torre {tempoTorre = cicloTorre torre, projetilTorre = disparaProjetil torre alvos}
   where
     alvos = inimigosNoAlcance torre inimigos
-
--- Função que determina inimigos no alcance da torre
-inimigosNoAlcance :: Torre -> [Inimigo] -> [Inimigo]
-inimigosNoAlcance torre = filter (\inimigo -> distancia (posicaoTorre torre) (posicaoInimigo inimigo) <= alcanceTorre torre) 
-
--- Calcula a distância entre a torre e o inimigo
-distancia :: Posicao -> Posicao -> Float
-distancia (x1, y1) (x2, y2) = sqrt ((x1 - x2)^(2 :: Integer) + (y1 - y2)^(2 :: Integer))
 
 -- Função que dispara o projétil pela torre 
 disparaProjetil :: Torre -> [Inimigo] -> Projetil
