@@ -14,10 +14,10 @@ import Tarefa2
 
 atualizaJogo :: Tempo -> Jogo -> Jogo
 atualizaJogo tempo jogo = 
-  jogo { inimigosJogo = novosInimigos,
+  jogo  {inimigosJogo = novosInimigos,
          torresJogo   = novasTorres,
          baseJogo     = novaBase,
-         portaisJogo  = novosPortais }
+         portaisJogo  = novosPortais}
   where
     -- Atualizar inimigos com movimento e aplicar efeitos
     novosInimigos = atualizaInimigos tempo (inimigosJogo jogo) (baseJogo jogo) (mapaJogo jogo)
@@ -33,18 +33,19 @@ atualizaJogo tempo jogo =
 
 -- Atualiza os inimigos no mapa
 atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> [Inimigo]
-atualizaInimigos tempo inimigos base mapa = 
-  [aplicaEfeitosProjeteis (movimentaInimigo tempo mapa inimigo) | inimigo <- inimigos]
+atualizaInimigos tempo inimigos base mapa = [aplicaEfeitosProjeteis (movimentaInimigo tempo mapa inimigo) | inimigo <- inimigos]
 
 atualizaInimigo :: Tempo -> Base -> Mapa -> Inimigo -> Inimigo
-atualizaInimigo tempo base mapa inimigo
-   = movimentaInimigo tempo mapa inimigo
+atualizaInimigo tempo base mapa inimigo = movimentaInimigo tempo mapa inimigo
 
+-- Atualiza a base ao receber dano de inimigos que chegaram
 -- Atualiza a base ao receber dano de inimigos que chegaram
 atualizaBase :: Base -> Inimigo -> Base
 atualizaBase base inimigo
-  | chegouBase inimigo (posicaoBase base) = base { vidaBase = max 0 (vidaBase base - ataqueInimigo inimigo) }
+  | chegouBase inimigo (posicaoBase base) = base 
+      { vidaBase = max 0 (vidaBase base - ataqueInimigo inimigo), creditosBase = creditosBase base + butimInimigo inimigo } -- Adiciona os créditos do inimigo
   | otherwise = base
+
 
 -- Função auxiliar para verificar se o inimigo chegou à base
 chegouBase :: Inimigo -> Posicao -> Bool
@@ -58,8 +59,8 @@ movimentaInimigo tempo mapa inimigo =
   let (x, y) = posicaoInimigo inimigo
   in if any (\p -> tipoProjetil p == Gelo) (projeteisInimigo inimigo) then inimigo
      else case direcaoInimigo inimigo of
-          Norte -> if eTerra ( x, ( y) + 1) mapa then inimigo {posicaoInimigo = (x, y + velocidadeInimigo inimigo * tempo)} else if eTerra ( x + 1,   y) mapa then inimigo {direcaoInimigo = Este} else inimigo {direcaoInimigo = Oeste}
-          Sul -> if eTerra ( x, ( y) - 1) mapa then inimigo {posicaoInimigo = (x, y - velocidadeInimigo inimigo * tempo)} else if eTerra ( x + 1,   y) mapa then inimigo {direcaoInimigo = Este} else inimigo {direcaoInimigo = Oeste}
+          Norte -> if eTerra ( x, y + 1) mapa then inimigo {posicaoInimigo = (x, y + velocidadeInimigo inimigo * tempo)} else if eTerra ( x + 1,   y) mapa then inimigo {direcaoInimigo = Este} else inimigo {direcaoInimigo = Oeste}
+          Sul -> if eTerra ( x, y - 1) mapa then inimigo {posicaoInimigo = (x, y - velocidadeInimigo inimigo * tempo)} else if eTerra ( x + 1,   y) mapa then inimigo {direcaoInimigo = Este} else inimigo {direcaoInimigo = Oeste}
           Este -> if eTerra ( x + 1,  y) mapa then inimigo {posicaoInimigo = (x + velocidadeInimigo inimigo * tempo, y)} else if eTerra ( x,   y + 1) mapa then inimigo {direcaoInimigo = Norte} else inimigo {direcaoInimigo = Sul}
           Oeste -> if eTerra ( x - 1,  y) mapa then inimigo {posicaoInimigo = (x - velocidadeInimigo inimigo * tempo, y)} else if eTerra ( x,   y + 1) mapa then inimigo {direcaoInimigo = Norte} else inimigo {direcaoInimigo = Sul}
 
@@ -86,7 +87,7 @@ aplicaEfeitosProjeteis inimigo = foldl aplicaEfeito inimigo (projeteisInimigo in
     aplicaEfeito acc _ = acc
 
 -- Atualiza as torres
-atualizaTorre :: Tempo -> [Inimigo] -> Torre -> Torre
+atualizaTorre :: Tempo -> [Inimigo] -> Torre -> Torre 
 atualizaTorre dt inimigos torre
   | tempoTorre torre > 0 = torre {tempoTorre = tempoTorre torre - dt}
   | null alvos = torre
