@@ -18,13 +18,13 @@ fr :: Int
 fr = 60
 
 it :: ImmutableTowers
-it = ImmutableTowers estadoInicialJogo
+it = ImmutableTowers estadoInicialJogo Nothing
 
 estadoInicialJogo :: Jogo --trocar os valores
 estadoInicialJogo = Jogo
   {baseJogo = Base
       {vidaBase = 1000.0,
-       posicaoBase = (5, 5), -- Posição inicial no mapa
+       posicaoBase = (13, 8), -- Posição inicial no mapa
        creditosBase = 150},
    portaisJogo = [Portal
       {posicaoPortal = (7, 3), -- Posição do portal inicial
@@ -42,14 +42,13 @@ estadoInicialJogo = Jogo
     torresJogo = [],
     mapaJogo = mapa,
     inimigosJogo = [Inimigo
-       {posicaoInimigo = (1, 2)           -- Posição inicial (x, y)
-      , direcaoInimigo = Sul           -- Direção inicial (movimento para a direita)
-      , vidaInimigo = 100                 -- Vida inicial
-      , velocidadeInimigo = 5             -- Velocidade inicial
-      , ataqueInimigo = 10                -- Dano causado
-      , butimInimigo = 50                 -- Créditos ao ser derrotado
-      , projeteisInimigo = []             -- Nenhum projétil inicialmente
-      }],
+       {posicaoInimigo = (1, 1),           -- Posição inicial (x, y)
+        direcaoInimigo = Sul,           -- Direção inicial (movimento para a direita)
+        vidaInimigo = 100,                 -- Vida inicial
+        velocidadeInimigo = 5,             -- Velocidade inicial
+        ataqueInimigo = 10,                -- Dano causado
+        butimInimigo = 50,                 -- Créditos ao ser derrotado
+        projeteisInimigo = []}],             -- Nenhum projétil inicialmente
     lojaJogo = [
           (150, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 20.0, alcanceTorre = 5.0,
                       rajadaTorre = 1, cicloTorre = 1.5, tempoTorre = 0.0,
@@ -63,9 +62,9 @@ estadoInicialJogo = Jogo
 
 main :: IO ()
 main = do
-  menuPicture <- loadBMP "imagensBMP/MainMenu.bmp"
-  let imagemMapa = (desenhaMapa mapa)
-  -- Carrega as imagens
+  let imagemMapa = desenhaMapa mapa
+
+  -- Carrega as imagens dos elementos do jogo
   imagemBase <- desenhaBase "imagensBMP/BaseBMP.bmp" 13 8 
   imagemVida <- desenhaVida "imagensBMP/Vida.bmp" 16 (-3)
   imagemMoeda <- desenhaMoeda "imagensBMP/CreditosBMP.bmp" 14 (0)
@@ -73,13 +72,13 @@ main = do
   imagemPortal1 <- desenhaPortal "imagensBMP/PortalBMP.bmp" 1 0
   imagemPortal2 <- desenhaPortal "imagensBMP/PortalBMP.bmp" 4 9
 
-  -- Carrega o produto final
-  let uiPictures = pictures [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, pictures (map desenhaInimigo (inimigosJogo estadoInicialJogo))],
-                             pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoInicialJogo), escreveCreditos (baseJogo estadoInicialJogo)]]
-  uiAcabada <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" "imagensBMP/TorreResinaLoja.bmp" uiPictures
+  lojaPicture <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" "imagensBMP/TorreResinaLoja.bmp" 
 
-  let inicialCompleto = JogoCompleto MainMenu estadoInicialJogo
+  let uiPictures (ImmutableTowers estadoJogo _) = pictures 
+        [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, pictures (map desenhaInimigo (inimigosJogo estadoJogo))],
+         pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoJogo), escreveCreditos (baseJogo estadoJogo)],lojaPicture]
 
-  play janela fundo fr it (return uiAcabada) reageEventos reageTempo
+  play janela fundo fr it (uiPictures) reageEventos reageTempo
+
 
 

@@ -62,27 +62,29 @@ desenhaPortal ficheiroImagem x y = do
       posY = -fromIntegral y * tamanhoTerreno
   return $ translate posX posY imagemAjustada
 
-desenhaTorre :: FilePath -> Int -> Int -> IO Picture
-desenhaTorre ficheiroImagem x y = do
-  torreImagem <- loadBMP ficheiroImagem
-  let imagemAjustada = scale (0.15) (0.15) torreImagem
-      posX = fromIntegral x * tamanhoTerreno 
-      posY = -fromIntegral y * tamanhoTerreno 
-  return $ translate posX posY imagemAjustada
+desenhaTorre :: Torre -> IO Picture
+desenhaTorre torre = do
+  let (x, y) = posicaoTorre torre
+  imagemTorre <- case tipoProjetil (projetilTorre torre) of
+    Fogo   -> loadBMP "imagensBMP/TorreFogo.bmp"
+    Gelo   -> loadBMP "imagensBMP/TorreGelo.bmp"
+    Resina -> loadBMP "imagensBMP/TorreResina.bmp"
+  let imagemAjustada = scale 0.3 0.3 imagemTorre -- Ajuste o tamanho conforme necessário
+  return $ translate (x * tamanhoTerreno + tamanhoTerreno / 2) (-y * tamanhoTerreno - tamanhoTerreno / 2) imagemAjustada
 
 desenhaVida :: FilePath -> Int -> Int -> IO Picture
 desenhaVida ficheiroImagem x y = do
   vidaImagem <- loadBMP ficheiroImagem
-  let imagemAjustada = scale (1) (1) vidaImagem
+  let imagemAjustada = scale (1.5) (1.5) vidaImagem
       posX = fromIntegral x * tamanhoTerreno - fromIntegral largura / 3
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.5 
   return $ translate posX posY imagemAjustada
 
 escreveVida :: Base -> Picture
-escreveVida base = translate 675 404 $ scale 0.2 0.2 $ color black $ text $ show (vidaBase base)
+escreveVida base = translate 675 400 $ scale 0.25 0.25 $ color black $ text $ show (round (vidaBase base))
 
 escreveCreditos :: Base -> Picture
-escreveCreditos base = translate 760 190 $ scale 0.2 0.2 $ color yellow $ text $ show (creditosBase base)
+escreveCreditos base = translate 745 190 $ scale 0.3 0.3 $ color yellow $ text $ show (creditosBase base)
 
 desenhaMoeda :: FilePath -> Int -> Int -> IO Picture
 desenhaMoeda ficheiroImagem x y = do
@@ -100,17 +102,16 @@ desenhaTabua ficheiroImagem x y = do
       posY = -fromIntegral y * tamanhoTerreno + fromIntegral altura / 3.4
   return $ translate posX posY imagemAjustada
 
-desenhaLoja :: FilePath -> FilePath -> FilePath -> Picture -> IO Picture
-desenhaLoja ficheiroImagem1 ficheiroImagem2 ficheiroImagem3 mapPicture = do
+desenhaLoja :: FilePath -> FilePath -> FilePath -> IO Picture
+desenhaLoja ficheiroImagem1 ficheiroImagem2 ficheiroImagem3 = do
   torreFogo <- loadBMP ficheiroImagem1 
   torreGelo <- loadBMP ficheiroImagem2 
   torreResina <- loadBMP ficheiroImagem3
   let imagemAjustada1 = scale 0.3 0.3 torreFogo -- Ajusta o tamanho
   let imagemAjustada2 = scale 0.3 0.3 torreGelo 
   let imagemAjustada3 = scale 0.3 0.3 torreResina
-  return $ pictures 
-    [mapPicture, 
-     translate (-250) (-fromIntegral altura / 2) imagemAjustada1, 
+  return $ pictures  
+     [translate (-250) (-fromIntegral altura / 2) imagemAjustada1, 
      translate (200) (-fromIntegral altura / 2) imagemAjustada2,
      translate (-700) (-fromIntegral altura / 2) imagemAjustada3] -- Ajusta a posicao
 
