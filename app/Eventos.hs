@@ -15,7 +15,7 @@ reageEventos (EventKey (SpecialKey KeyEnter) Down _ _) it@(ImmutableTowers _ _ W
 reageEventos (EventKey (SpecialKey KeyEnter) Down _ _) it@(ImmutableTowers _ _ GameOver) =
     it {ecraJogo = MenuInicial}
 reageEventos (EventKey (MouseButton LeftButton) Down _ (mx, my)) it@(ImmutableTowers estado torreSelecionada Gameplay) =
-    trace ("Clique detectado em: " ++ show (mx, my)) $
+    trace ("Clique detectado em: " ++ show (coordenadasParaMatriz (mx, my))) $
         case torreSelecionada of
             NadaSelecionado -> selecionarTorre (clicaNaLoja (mx, my)) it
             TorreFogo       -> colocaTorre (mx, my) torreSelecionada it
@@ -73,14 +73,21 @@ dentroDaLoja mx my xmin xmax ymin ymax = mx >= xmin && mx <= xmax && my >= ymin 
 coordenadasParaMatriz :: (Float, Float) -> (Float, Float)
 coordenadasParaMatriz (px, py) =
   let
-    -- Ajustar coordenadas do ecrã para alinhar com a origem do mapa
-    offsetX = -895-- Posição inicial em x
-    offsetY = 470  -- Posição inicial em y (invertido para alinhar com a matriz)
-    -- Coordenadas normalizadas para a origem do mapa
+    -- Deslocamento para alinhar a origem do mapa com a origem da tela
+    offsetX = -925  -- Coordenada X mínima da tela
+    offsetY = 505   -- Coordenada Y máxima da tela (invertido para alinhar com a matriz)
+
+    -- Coordenadas normalizadas para o sistema de referência do mapa
     normalizadoX = px - offsetX
     normalizadoY = offsetY - py
-    -- Converter para índices da matriz
-    coluna = (normalizadoX / tamanhoTerreno)
-    linha  = (normalizadoY / tamanhoTerreno)
+
+    -- Converter para índices da matriz (arredondando para o índice mais próximo)
+    coluna = fromIntegral (floor (normalizadoX / tamanhoTerreno))
+    linha  = fromIntegral (floor (normalizadoY / tamanhoTerreno))
   in
-    ((coluna), (linha))
+    (coluna, linha)
+    
+-- X maximo = 500
+-- X minimo = -925
+-- Y minimo = -210
+-- Y maximo = 505

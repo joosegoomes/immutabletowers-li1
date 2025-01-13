@@ -122,7 +122,7 @@ desenhaLoja ficheiroImagem1 ficheiroImagem2 ficheiroImagem3 = do
 desenhaInimigo inimigoBMP inimigo = translate (x * tamanhoTerreno - tamanhoTerreno/2) (-y * tamanhoTerreno + tamanhoTerreno/2) $ scale 0.4 0.4 inimigoBMP -- Ajuste o tamanho conforme necessário
                                   where (x, y) = posicaoInimigo inimigo -}
 desenhaInimigo :: Inimigo -> Picture
-desenhaInimigo inimigo = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color red $ rectangleSolid tamanhoTerreno tamanhoTerreno
+desenhaInimigo inimigo = translate (x * (tamanhoTerreno/2) - tamanhoTerreno) (-y * (tamanhoTerreno/2) + tamanhoTerreno) $ color red $ rectangleSolid tamanhoTerreno tamanhoTerreno
   where (x, y) = posicaoInimigo inimigo
 
 desenhaInimigos :: [Inimigo] -> Picture
