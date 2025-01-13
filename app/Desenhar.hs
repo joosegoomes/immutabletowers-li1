@@ -118,15 +118,9 @@ desenhaLoja ficheiroImagem1 ficheiroImagem2 ficheiroImagem3 = do
      translate (200) (-fromIntegral altura / 2) imagemAjustada2,
      translate (-700) (-fromIntegral altura / 2) imagemAjustada3] -- Ajusta a posicao
 
-{- desenhaInimigo :: Picture -> Inimigo -> Picture
+desenhaInimigo :: Picture -> Inimigo -> Picture
 desenhaInimigo inimigoBMP inimigo = translate (x * tamanhoTerreno - tamanhoTerreno/2) (-y * tamanhoTerreno + tamanhoTerreno/2) $ scale 0.4 0.4 inimigoBMP -- Ajuste o tamanho conforme necessário
-                                  where (x, y) = posicaoInimigo inimigo -}
-desenhaInimigo :: Inimigo -> Picture
-desenhaInimigo inimigo = translate (x * (tamanhoTerreno/2) - tamanhoTerreno) (-y * (tamanhoTerreno/2) + tamanhoTerreno) $ color red $ rectangleSolid tamanhoTerreno tamanhoTerreno
-  where (x, y) = posicaoInimigo inimigo
+                                  where (x, y) = posicaoInimigo inimigo
 
-desenhaInimigos :: [Inimigo] -> Picture
-desenhaInimigos inimigos = Pictures $ map desenhaInimigo inimigos
-
-{- desenhaInimigos :: [Inimigo] -> Picture -> Picture
-desenhaInimigos inimigos inimigoBMP = Pictures $ map (desenhaInimigo inimigoBMP) inimigos -}
+desenhaInimigos :: [Inimigo] -> Picture -> Picture
+desenhaInimigos inimigos inimigoBMP = Pictures $ map (desenhaInimigo inimigoBMP) inimigos

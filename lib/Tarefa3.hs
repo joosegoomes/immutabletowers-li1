@@ -15,6 +15,12 @@ import Debug.Trace (trace)
 import Data.Maybe
 import Data.List (find)
 
+import Tarefa1
+import Tarefa2
+import Debug.Trace (trace)
+import Data.Maybe
+import Data.List (find)
+
 -- Atualiza o estado do jogo (inimigos e base)
 atualizaJogo :: Tempo -> Jogo -> Jogo
 atualizaJogo tempo jogo =  
@@ -40,16 +46,12 @@ atualizaJogo tempo jogo =
     -- Atualizar portais
     novosPortais = map (atualizaPortal tempo) (portaisJogo jogo)
 
+-- Atualiza os inimigos no mapa e aplica suas ações (movimentação, dano à base)
 atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> ([Inimigo], Base)
 atualizaInimigos tempo inimigos base mapa =
-  let (inimigosAtualizados, baseAtualizada) = foldl processaInimigo ([], base) inimigos
-  in (reverse inimigosAtualizados, baseAtualizada)
-  where
-    -- Processa cada inimigo, movendo e aplicando dano à base se necessário
-    processaInimigo (vivos, baseAtualizada) inimigo =
-      case movimentaInimigo tempo mapa inimigo of
-        Nothing -> (vivos, baseAtualizada {vidaBase = max 0 (vidaBase baseAtualizada - ataqueInimigo inimigo)})
-        Just inimigoAtualizado -> (inimigoAtualizado : vivos, baseAtualizada)
+  let inimigosAtualizados = mapMaybe (movimentaInimigo tempo mapa) inimigos
+      baseComDano = foldl aplicaDanoBase base inimigos
+  in (inimigosAtualizados, baseComDano)
 
 -- Aplica dano à base se o inimigo chegou à base
 aplicaDanoBase :: Base -> Inimigo -> Base
@@ -82,7 +84,7 @@ atualizaEstado tempo inimigos base mapa =
                           else baseAtualizado) 
                         baseComDano 
                         inimigosAtualizados
-  in (inimigosAtualizados, baseFinal)
+  in (inimigosAtualizados, baseFinal) 
 
 -- Verifica se o inimigo chegou à base
 chegouBase :: Inimigo -> Base -> Bool
@@ -91,30 +93,23 @@ chegouBase inimigo base =
       (xb, yb) = posicaoBase base
   in distancia (x, y) (xb, yb) <= 0.2
 
+-- Movimenta o inimigo no mapa
 movimentaInimigo :: Tempo -> Mapa -> Inimigo -> Maybe Inimigo
 movimentaInimigo tempo mapa inimigo =
   let (x, y) = posicaoInimigo inimigo
       (xb, yb) = (13, 8)  -- Coordenadas da base
-      vel = velocidadeInimigo inimigo * tempo
       proxPos = case direcaoInimigo inimigo of
-                  Norte -> (x, y - vel)
-                  Sul   -> (x, y + vel)
-                  Este  -> (x + vel, y)
-                  Oeste -> (x - vel, y)
-      -- Centered position when the enemy is very close to the base
-      centeredAtBase = distancia (x, y) (xb, yb) <= 0.2
-      -- Update position if the next position is valid
-      moveOrRotate =
-        if eTerra proxPos mapa  -- Proximal position is valid
-        then Just inimigo {posicaoInimigo = proxPos}
-        else rotacionaDirecao inimigo mapa  -- Rotate to find valid path
-  in if centeredAtBase
-     then Nothing  -- Remove enemy from the game and deal damage to the base
-     else if any (\p -> tipoProjetil p == Gelo) (projeteisInimigo inimigo)
-          then Just inimigo  -- Frozen enemies don't move
-          else moveOrRotate
+                  Norte -> (x, y + velocidadeInimigo inimigo * tempo)
+                  Sul   -> (x, y - velocidadeInimigo inimigo * tempo)
+                  Este  -> (x + velocidadeInimigo inimigo * tempo, y)
+                  Oeste -> (x - velocidadeInimigo inimigo * tempo, y)
+  in if distancia (x, y) (xb, yb) <= 0.2  -- O inimigo chegou à base
+     then Nothing  -- Remove o inimigo da lista
+     else if eTerra proxPos mapa  -- O próximo passo é um terreno válido
+          then Just inimigo {posicaoInimigo = proxPos}  -- Atualiza posição
+          else rotacionaDirecao inimigo mapa  -- Tenta rotacionar direção
 
--- Rotate the enemy's direction to find a valid path
+-- Rotaciona a direção do inimigo ao encontrar um obstáculo
 rotacionaDirecao :: Inimigo -> Mapa -> Maybe Inimigo
 rotacionaDirecao inimigo mapa =
   let (x, y) = posicaoInimigo inimigo
@@ -123,15 +118,15 @@ rotacionaDirecao inimigo mapa =
                         Sul   -> [Este, Oeste]
                         Este  -> [Norte, Sul]
                         Oeste -> [Norte, Sul]
+      direcaoValida = find (\d -> eTerra (novaPosicao d) mapa) novasDirecoes
       novaPosicao d = case d of
-                        Norte -> (x, y - 1)
-                        Sul   -> (x, y + 1)
-                        Este  -> (x + 1, y)
-                        Oeste -> (x - 1, y)
-      direcaoValida = find (\direcao -> eTerra (novaPosicao direcao) mapa) novasDirecoes
+                        Norte -> (x, y + 0.52)
+                        Sul   -> (x, y - 0.52)
+                        Este  -> (x + 0.52, y)
+                        Oeste -> (x - 0.52, y)
   in case direcaoValida of
        Just novaDirecao -> Just inimigo {direcaoInimigo = novaDirecao}
-       Nothing          -> Just inimigo  -- No valid direction found
+       Nothing          -> Just inimigo  -- Nenhuma direção válida, mantém como está
 
 -- Ajusta a velocidade do inimigo com base nos projéteis
 ajustaVelocidade :: [Projetil] -> Float
@@ -172,11 +167,11 @@ disparaProjetil torre alvos
 
 -- Atualiza o estado dos portais
 atualizaPortal :: Tempo -> Portal -> Portal
-atualizaPortal tempo portal = portal {ondasPortal = map (atualizaOnda tempo) (ondasPortal portal)}
+atualizaPortal dt portal = portal {ondasPortal = map (atualizaOnda dt) (ondasPortal portal)}
 
 -- Atualiza uma onda de inimigos
 atualizaOnda :: Tempo -> Onda -> Onda
-atualizaOnda tempo onda
-  | entradaOnda onda > 0 = onda {entradaOnda = entradaOnda onda - tempo}
-  | tempoOnda onda > 0 = onda {tempoOnda = tempoOnda onda - tempo}
+atualizaOnda dt onda
+  | entradaOnda onda > 0 = onda {entradaOnda = entradaOnda onda - dt}
+  | tempoOnda onda > 0 = onda {tempoOnda = tempoOnda onda - dt}
   | otherwise = onda

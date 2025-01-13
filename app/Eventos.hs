@@ -86,7 +86,7 @@ coordenadasParaMatriz (px, py) =
     linha  = fromIntegral (floor (normalizadoY / tamanhoTerreno))
   in
     (coluna, linha)
-    
+
 -- X maximo = 500
 -- X minimo = -925
 -- Y minimo = -210
