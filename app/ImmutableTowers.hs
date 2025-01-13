@@ -54,10 +54,10 @@ estadoInicialJogo = Jogo
  inimigosJogo = [
    Inimigo
         {posicaoInimigo = (1, 0),           -- Posição inicial (x, y)
-         direcaoInimigo = Norte,            -- Direção inicial (movimento para baixo)
+         direcaoInimigo = Sul,            -- Direção inicial (movimento para baixo)
          vidaInimigo = 100,                 -- Vida inicial
          velocidadeInimigo = 3,             -- Velocidade inicial
-         ataqueInimigo = 50,                -- Dano causado
+         ataqueInimigo = 1000,                -- Dano causado
          butimInimigo = 50,                 -- Créditos ao ser derrotado
          projeteisInimigo = []}],
     lojaJogo = [

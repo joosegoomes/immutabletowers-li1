@@ -42,9 +42,10 @@ corDoTerreno Agua  = makeColorI 70 130 180 255 -- Cor da Agua
 desenhaterreno :: (Terreno,Posicao) -> Picture
 desenhaterreno (terreno, (x,y)) = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color (corDoTerreno terreno) $ rectangleSolid tamanhoTerreno tamanhoTerreno
 
--- | Desenha o Mapa inteiro
 desenhaMapa :: Mapa -> Picture
-desenhaMapa mapa = pictures (map desenhaterreno (coordenadas mapa (0,0)))
+desenhaMapa mapa =
+  pictures [translate (fromIntegral x * tamanhoTerreno) (fromIntegral (-y) * tamanhoTerreno)(color (corDoTerreno terreno) (rectangleSolid tamanhoTerreno tamanhoTerreno))
+           | (y, linha) <- zip [0..] mapa, (x, terreno) <- zip [0..] linha]
 
 desenhaBase :: FilePath -> Int -> Int -> IO Picture
 desenhaBase ficheiroImagem x y = do
@@ -117,14 +118,15 @@ desenhaLoja ficheiroImagem1 ficheiroImagem2 ficheiroImagem3 = do
      translate (200) (-fromIntegral altura / 2) imagemAjustada2,
      translate (-700) (-fromIntegral altura / 2) imagemAjustada3] -- Ajusta a posicao
 
-desenhaInimigo :: Picture -> Inimigo -> Picture
+{- desenhaInimigo :: Picture -> Inimigo -> Picture
 desenhaInimigo inimigoBMP inimigo = translate (x * tamanhoTerreno - tamanhoTerreno/2) (-y * tamanhoTerreno + tamanhoTerreno/2) $ scale 0.4 0.4 inimigoBMP -- Ajuste o tamanho conforme necessário
-                                  where (x, y) = posicaoInimigo inimigo
+                                  where (x, y) = posicaoInimigo inimigo -}
+desenhaInimigo :: Inimigo -> Picture
+desenhaInimigo inimigo = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color red $ rectangleSolid tamanhoTerreno tamanhoTerreno
+  where (x, y) = posicaoInimigo inimigo
 
-desenhaInimigos :: [Inimigo] -> Picture -> Picture
-desenhaInimigos inimigos inimigoBMP = Pictures $ map (desenhaInimigo inimigoBMP) inimigos
+desenhaInimigos :: [Inimigo] -> Picture
+desenhaInimigos inimigos = Pictures $ map desenhaInimigo inimigos
 
-ampliaEcras :: Float -> Float -> Picture -> Picture
-ampliaEcras larguraJanela alturaJanela picture =
-  let (larguraImagem, alturaImagem) = (larguraJanela, alturaJanela)
-  in scale (3.3 * (larguraImagem / 1920)) (3.5 * (alturaImagem / 1080)) picture
+{- desenhaInimigos :: [Inimigo] -> Picture -> Picture
+desenhaInimigos inimigos inimigoBMP = Pictures $ map (desenhaInimigo inimigoBMP) inimigos -}

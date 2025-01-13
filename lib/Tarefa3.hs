@@ -97,8 +97,8 @@ movimentaInimigo tempo mapa inimigo =
       (xb, yb) = (13, 8)  -- Coordenadas da base
       vel = velocidadeInimigo inimigo * tempo
       proxPos = case direcaoInimigo inimigo of
-                  Norte -> (x, y + vel)
-                  Sul   -> (x, y - vel)
+                  Norte -> (x, y - vel)
+                  Sul   -> (x, y + vel)
                   Este  -> (x + vel, y)
                   Oeste -> (x - vel, y)
       -- Centered position when the enemy is very close to the base
@@ -124,11 +124,11 @@ rotacionaDirecao inimigo mapa =
                         Este  -> [Norte, Sul]
                         Oeste -> [Norte, Sul]
       novaPosicao d = case d of
-                        Norte -> (x, y + 0.52)
-                        Sul   -> (x, y - 0.52)
-                        Este  -> (x + 0.52, y)
-                        Oeste -> (x - 0.52, y)
-      direcaoValida = find (\d -> eTerra (novaPosicao d) mapa) novasDirecoes
+                        Norte -> (x, y - 1)
+                        Sul   -> (x, y + 1)
+                        Este  -> (x + 1, y)
+                        Oeste -> (x - 1, y)
+      direcaoValida = find (\direcao -> eTerra (novaPosicao direcao) mapa) novasDirecoes
   in case direcaoValida of
        Just novaDirecao -> Just inimigo {direcaoInimigo = novaDirecao}
        Nothing          -> Just inimigo  -- No valid direction found
