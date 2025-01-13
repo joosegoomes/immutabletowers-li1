@@ -45,7 +45,7 @@ main = do
 
   let uiPictures (ImmutableTowers _ _ MenuInicial) = pictures [menu]
       uiPictures (ImmutableTowers estadoJogo _ Gameplay) = pictures 
-          [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, 
+          [translate 0 0 background, translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, 
             desenhaInimigos (inimigosJogo estadoJogo) inimigoBMP inimigoFlip, desenhaTorres (torresJogo estadoJogo) [torreFogo, torreGelo, torreResina]],
            pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoJogo), escreveCreditos (baseJogo estadoJogo)], lojaPicture]
       uiPictures (ImmutableTowers _ _ Win) = pictures [vitoria]

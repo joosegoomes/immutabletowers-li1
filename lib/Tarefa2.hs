@@ -34,10 +34,12 @@ Inimigo {posicaoInimigo = (1,1), vidaInimigo = 5, projeteisInimigo = [Projetil F
 >>> atingeInimigo Torre { danoTorre = 15, projetilTorre = Projetil Fogo (Finita 3) } Inimigo { vidaInimigo = 10, projeteisInimigo = [], posicaoInimigo = (1,1), velocidadeInimigo = 1 }
 Inimigo {posicaoInimigo = (1,1), vidaInimigo = 0, projeteisInimigo = [Projetil Fogo (Finita 3)], velocidadeInimigo = 1}
 -}
+-- Atinge um inimigo com a torre e atualiza a vida e os projéteis
 atingeInimigo :: Torre -> Inimigo -> Inimigo
 atingeInimigo Torre {danoTorre = dano, projetilTorre = projTorre} inimigo@Inimigo {vidaInimigo = vida, projeteisInimigo = projInimigo} =
   inimigo {vidaInimigo = max 0 (vida - dano), projeteisInimigo = atualizaProjeteis projTorre projInimigo}
   where
+    -- Atualiza os projéteis que atingem o inimigo
     atualizaProjeteis :: Projetil -> [Projetil] -> [Projetil]
     atualizaProjeteis proj [] = [proj]
     atualizaProjeteis proj (p:ps)
@@ -46,22 +48,26 @@ atingeInimigo Torre {danoTorre = dano, projetilTorre = projTorre} inimigo@Inimig
       | dobraDuracao' proj p = p {duracaoProjetil = dobra p} : atualizaProjeteis p ps
       | otherwise = p : atualizaProjeteis proj ps
 
+    -- Função que cancela projéteis mutuamente (como Fogo e Gelo)
     cancelaMutuamente :: Projetil -> Projetil -> Bool
     cancelaMutuamente (Projetil Gelo _) (Projetil Fogo _) = True
     cancelaMutuamente (Projetil Fogo _) (Projetil Gelo _) = True
     cancelaMutuamente _ _ = False
 
+    -- Função que dobra a duração de um projétil quando ele interage com outro
     dobraDuracao :: Projetil -> Projetil -> Bool
     dobraDuracao (Projetil Fogo _) (Projetil Resina _) = True
     dobraDuracao _ _ = False
 
+    -- Função complementar para verificar a interação oposta
     dobraDuracao' :: Projetil -> Projetil -> Bool
     dobraDuracao' (Projetil Resina _) (Projetil Fogo _) = True
     dobraDuracao' _ _ = False
 
+    -- Dobra a duração do projétil
     dobra :: Projetil -> Duracao
-    dobra (Projetil _ (Finita t)) = Finita (2 * t)
-    dobra (Projetil _ Infinita) = Infinita
+    dobra (Projetil _ (Finita t)) = Finita (2 * t)  -- Dobra o tempo se for finito
+    dobra (Projetil _ Infinita) = Infinita  -- Se for infinito, mantém como Infinito
 
 {-|
 Verifica se o jogo terminou.

@@ -129,9 +129,9 @@ rotacionaDirecao inimigo mapa =
 -- Ajusta a velocidade do inimigo com base nos projéteis
 ajustaVelocidade :: Inimigo -> Float
 ajustaVelocidade inimigo
-  | any (\projetil -> tipoProjetil projetil == Resina) (projeteisInimigo inimigo) = 0.7
-  | any (\projetil -> tipoProjetil projetil == Gelo) (projeteisInimigo inimigo) = 0
-  | otherwise = 1
+  | any (\projetil -> tipoProjetil projetil == Resina) (projeteisInimigo inimigo) = 0.7  -- Resina reduz a velocidade
+  | any (\projetil -> tipoProjetil projetil == Gelo) (projeteisInimigo inimigo) = 0      -- Gelo congela o inimigo
+  | otherwise = 1  -- Se não tiver projéteis, mantém a velocidade normal
 
 -- Aplica os efeitos dos projéteis no inimigo
 aplicaEfeitosProjeteis :: Inimigo -> Inimigo
@@ -139,14 +139,14 @@ aplicaEfeitosProjeteis inimigo = foldl aplicaEfeito inimigo (projeteisInimigo in
   where
     aplicaEfeito :: Inimigo -> Projetil -> Inimigo
     aplicaEfeito acc (Projetil Fogo (Finita t)) =
-      acc {vidaInimigo = vidaInimigo acc - 5 * min t 1}
+      acc {vidaInimigo = vidaInimigo acc - 5 * min t 1}  -- Fogo com dano baseado no tempo
     aplicaEfeito acc (Projetil Fogo Infinita) =
-      acc {vidaInimigo = vidaInimigo acc - 5} -- Dano contínuo por segundo
+      acc {vidaInimigo = vidaInimigo acc - 5}  -- Dano contínuo
     aplicaEfeito acc (Projetil Gelo Infinita) =
-      acc {velocidadeInimigo = 0} -- Congela o inimigo
+      acc {velocidadeInimigo = 0}  -- Gelo congela o inimigo
     aplicaEfeito acc (Projetil Resina Infinita) =
-      acc {velocidadeInimigo = velocidadeInimigo acc * 0.5} -- Reduz velocidade permanentemente
-    aplicaEfeito acc _ = acc
+      acc {velocidadeInimigo = velocidadeInimigo acc * 0.5}  -- Resina reduz a velocidade permanentemente
+    aplicaEfeito acc _ = acc  -- Outros projéteis não afetam o inimigo
 
 -- Atualiza a torre e os inimigos, aplicando efeitos e ajustando vida
 atualizaTorre :: Tempo -> [Inimigo] -> Torre -> (Torre, [Inimigo])
@@ -199,5 +199,5 @@ atualizaOnda tempo onda
 lancarInimigos :: Onda -> [Inimigo]
 lancarInimigos onda = inimigosOnda onda
 
-  -- tempoOnda <= 0 -> tempoOnda == cicloOnda 
+-- tempoOnda <= 0 -> tempoOnda == cicloOnda 
   
