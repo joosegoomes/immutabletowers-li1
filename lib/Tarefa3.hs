@@ -15,12 +15,6 @@ import Debug.Trace (trace)
 import Data.Maybe
 import Data.List (find)
 
-import Tarefa1
-import Tarefa2
-import Debug.Trace (trace)
-import Data.Maybe
-import Data.List (find)
-
 -- Atualiza o estado do jogo (inimigos e base)
 atualizaJogo :: Tempo -> Jogo -> Jogo
 atualizaJogo tempo jogo =  
@@ -97,13 +91,13 @@ chegouBase inimigo base =
 movimentaInimigo :: Tempo -> Mapa -> Inimigo -> Maybe Inimigo
 movimentaInimigo tempo mapa inimigo =
   let (x, y) = posicaoInimigo inimigo
-      (xb, yb) = (13, 8)  -- Coordenadas da base
+      (xB, yB) = (13, 8)  -- Coordenadas da base
       proxPos = case direcaoInimigo inimigo of
                   Norte -> (x, y + velocidadeInimigo inimigo * tempo)
                   Sul   -> (x, y - velocidadeInimigo inimigo * tempo)
                   Este  -> (x + velocidadeInimigo inimigo * tempo, y)
                   Oeste -> (x - velocidadeInimigo inimigo * tempo, y)
-  in if distancia (x, y) (xb, yb) <= 0.2  -- O inimigo chegou à base
+  in if distancia (x, y) (xB, yB) <= 0.2  -- O inimigo chegou à base
      then Nothing  -- Remove o inimigo da lista
      else if eTerra proxPos mapa  -- O próximo passo é um terreno válido
           then Just inimigo {posicaoInimigo = proxPos}  -- Atualiza posição
@@ -118,8 +112,8 @@ rotacionaDirecao inimigo mapa =
                         Sul   -> [Este, Oeste]
                         Este  -> [Norte, Sul]
                         Oeste -> [Norte, Sul]
-      direcaoValida = find (\d -> eTerra (novaPosicao d) mapa) novasDirecoes
-      novaPosicao d = case d of
+      direcaoValida = find (\direcao -> eTerra (novaPosicao direcao) mapa) novasDirecoes
+      novaPosicao direcao = case direcao of
                         Norte -> (x, y + 0.52)
                         Sul   -> (x, y - 0.52)
                         Este  -> (x + 0.52, y)

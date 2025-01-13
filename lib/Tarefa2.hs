@@ -36,7 +36,7 @@ Inimigo {posicaoInimigo = (1,1), vidaInimigo = 0, projeteisInimigo = [Projetil F
 -}
 atingeInimigo :: Torre -> Inimigo -> Inimigo
 atingeInimigo Torre {danoTorre = dano, projetilTorre = projTorre} inimigo@Inimigo {vidaInimigo = vida, projeteisInimigo = projInimigo} =
-  inimigo { vidaInimigo = max 0 (vida - dano), projeteisInimigo = atualizaProjeteis projTorre projInimigo }
+  inimigo {vidaInimigo = max 0 (vida - dano), projeteisInimigo = atualizaProjeteis projTorre projInimigo}
   where
     atualizaProjeteis :: Projetil -> [Projetil] -> [Projetil]
     atualizaProjeteis proj [] = [proj]

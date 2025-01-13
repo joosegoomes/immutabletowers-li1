@@ -14,13 +14,13 @@ reageEventos (EventKey (SpecialKey KeyEnter) Down _ _) it@(ImmutableTowers _ _ W
     it {ecraJogo = MenuInicial}
 reageEventos (EventKey (SpecialKey KeyEnter) Down _ _) it@(ImmutableTowers _ _ GameOver) =
     it {ecraJogo = MenuInicial}
-reageEventos (EventKey (MouseButton LeftButton) Down _ (mx, my)) it@(ImmutableTowers estado torreSelecionada Gameplay) =
-    trace ("Clique detectado em: " ++ show (coordenadasParaMatriz (mx, my))) $
+reageEventos (EventKey (MouseButton LeftButton) Down _ (x, y)) it@(ImmutableTowers estado torreSelecionada Gameplay) =
+    trace ("Clique detectado em: " ++ show (coordenadasParaMatriz (x, y))) $
         case torreSelecionada of
-            NadaSelecionado -> selecionarTorre (clicaNaLoja (mx, my)) it
-            TorreFogo       -> colocaTorre (mx, my) torreSelecionada it
-            TorreGelo       -> colocaTorre (mx, my) torreSelecionada it
-            TorreResina     -> colocaTorre (mx, my) torreSelecionada it
+            NadaSelecionado -> selecionarTorre (clicaNaLoja (x, y)) it
+            TorreFogo       -> colocaTorre (x, y) torreSelecionada it
+            TorreGelo       -> colocaTorre (x, y) torreSelecionada it
+            TorreResina     -> colocaTorre (x, y) torreSelecionada it
 reageEventos _ it = it
 
 -- Seleciona a torre desejada, desde que o jogador tenha créditos suficientes
@@ -38,8 +38,8 @@ selecionarTorre torre it@(ImmutableTowers estado NadaSelecionado Gameplay) =
 selecionarTorre _ it = it
 
 colocaTorre :: (Float, Float) -> TorreSelecionada -> ImmutableTowers -> ImmutableTowers
-colocaTorre (mx, my) torre it@(ImmutableTowers estado _ Gameplay) =
-    let posicao = coordenadasParaMatriz (mx, my)
+colocaTorre (x, y) torre it@(ImmutableTowers estado _ Gameplay) =
+    let posicao = coordenadasParaMatriz (x, y)
         validaRelva = eRelva posicao (mapaJogo estado)
         validaTorre = not (existeTorre posicao (torresJogo estado))
     in if validaRelva && validaTorre
@@ -60,15 +60,15 @@ existeTorre posicao = any (\torre -> posicaoTorre torre == posicao)
 
 -- Determina a torre clicada na loja, usando uma forma mais flexível
 clicaNaLoja :: (Float, Float) -> TorreSelecionada
-clicaNaLoja (mx, my)
-  | dentroDaLoja mx my (-805) (-600) (-470) (-230) = TorreResina
-  | dentroDaLoja mx my (-355) (-145) (-470) (-230) = TorreFogo
-  | dentroDaLoja mx my 96 304 (-470) (-230) = TorreGelo
+clicaNaLoja (x, y)
+  | dentroDaLoja x y (-805) (-600) (-470) (-230) = TorreResina
+  | dentroDaLoja x y (-355) (-145) (-470) (-230) = TorreFogo
+  | dentroDaLoja x y 96 304 (-470) (-230) = TorreGelo
   | otherwise = NadaSelecionado
 
 -- Verifica se as coordenadas estão dentro de um retângulo de limites dados
 dentroDaLoja :: Float -> Float -> Float -> Float -> Float -> Float -> Bool
-dentroDaLoja mx my xmin xmax ymin ymax = mx >= xmin && mx <= xmax && my >= ymin && my <= ymax
+dentroDaLoja x y xmin xmax ymin ymax = x >= xmin && x <= xmax && y >= ymin && y <= ymax
 
 coordenadasParaMatriz :: (Float, Float) -> (Float, Float)
 coordenadasParaMatriz (px, py) =
