@@ -11,10 +11,13 @@ module Tarefa3 where
 import LI12425
 import Tarefa1
 import Tarefa2
+import Debug.Trace (trace)
 
+-- Atualiza o estado do jogo (inimigos e base)
 atualizaJogo :: Tempo -> Jogo -> Jogo
 atualizaJogo tempo jogo = 
-  jogo  {inimigosJogo = novosInimigos,
+  trace (show novasTorres) $ 
+  jogo  {inimigosJogo = fst novosInimigos,
          torresJogo   = novasTorres,
          baseJogo     = novaBase,
          portaisJogo  = novosPortais}
@@ -22,47 +25,88 @@ atualizaJogo tempo jogo =
     -- Atualizar inimigos com movimento e aplicar efeitos
     novosInimigos = atualizaInimigos tempo (inimigosJogo jogo) (baseJogo jogo) (mapaJogo jogo)
 
-    -- Atualizar base com base no dano causado pelos inimigos
-    novaBase = foldl atualizaBase (baseJogo jogo) novosInimigos
+    -- Atualizar base com base nos novos estados dos inimigos
+    novaBase = foldl (\base inimigo -> 
+                          if chegouBase inimigo (baseJogo jogo)  -- Verifica se o inimigo chegou à base
+                          then base {vidaBase = max 0 (vidaBase base - ataqueInimigo inimigo)}  -- Subtrai o dano
+                          else base) 
+                     (baseJogo jogo) 
+                     (fst novosInimigos)
 
     -- Atualizar torres com base nos novos estados dos inimigos
-    novasTorres = map (atualizaTorre tempo novosInimigos) (torresJogo jogo)
+    novasTorres = map (atualizaTorre tempo (fst novosInimigos)) (torresJogo jogo)
 
     -- Atualizar portais
     novosPortais = map (atualizaPortal tempo) (portaisJogo jogo)
 
--- Atualiza os inimigos no mapa
-atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> [Inimigo]
-atualizaInimigos tempo inimigos base mapa = [aplicaEfeitosProjeteis (movimentaInimigo tempo mapa inimigo) | inimigo <- inimigos]
+-- Atualiza os inimigos no mapa e remove os derrotados
+atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> ([Inimigo], Base)
+atualizaInimigos tempo inimigos base mapa =
+  let inimigosAtualizados = [aplicaEfeitosProjeteis inimigoAtualizado | Just inimigoAtualizado <- map (movimentaInimigo tempo mapa) inimigos]
+      (vivos, baseAtualizada) = filtraInimigosVivos inimigosAtualizados base
+  in (vivos, baseAtualizada)
 
-atualizaInimigo :: Tempo -> Base -> Mapa -> Inimigo -> Inimigo
-atualizaInimigo tempo base mapa inimigo = movimentaInimigo tempo mapa inimigo
+-- Filtra inimigos vivos, removendo os derrotados ou os que chegaram à base
+filtraInimigosVivos :: [Inimigo] -> Base -> ([Inimigo], Base)
+filtraInimigosVivos inimigos base =
+  let (inimigosVivos, baseAtualizada) = foldl processaInimigo ([], base) inimigos
+  in (reverse inimigosVivos, baseAtualizada)
+  where
+    -- Filtra e processa cada inimigo
+    processaInimigo (vivos, baseAtualizada) inimigo
+      | vidaInimigo inimigo <= 0 || chegouBase inimigo base = 
+          -- Inimigo derrotado ou chegou à base, acumula butim e subtrai dano
+          (vivos, baseAtualizada { 
+            creditosBase = creditosBase baseAtualizada + butimInimigo inimigo,  -- Acumula butim
+            vidaBase = if chegouBase inimigo base 
+                       then max 0 (vidaBase baseAtualizada - ataqueInimigo inimigo)  -- Subtrai o dano
+                       else vidaBase baseAtualizada })
+      | otherwise = (inimigo : vivos, baseAtualizada)  -- Mantém o inimigo vivo
 
--- Atualiza a base ao receber dano de inimigos que chegaram
--- Atualiza a base ao receber dano de inimigos que chegaram
-atualizaBase :: Base -> Inimigo -> Base
-atualizaBase base inimigo
-  | chegouBase inimigo (posicaoBase base) = base 
-      { vidaBase = max 0 (vidaBase base - ataqueInimigo inimigo), creditosBase = creditosBase base + butimInimigo inimigo } -- Adiciona os créditos do inimigo
-  | otherwise = base
-
+-- Atualiza o estado do jogo (inimigos e base)
+atualizaEstado :: Tempo -> [Inimigo] -> Base -> Mapa -> ([Inimigo], Base)
+atualizaEstado tempo inimigos base mapa =
+  let (inimigosAtualizados, baseComDano) = atualizaInimigos tempo inimigos base mapa
+      baseFinal = foldl (\baseAtualizado inimigo -> 
+                          if chegouBase inimigo base  -- Verifica se o inimigo chegou à base
+                          then baseAtualizado {vidaBase = max 0 (vidaBase baseAtualizado - ataqueInimigo inimigo)}  -- Subtrai o dano
+                          else baseAtualizado) 
+                        baseComDano 
+                        inimigosAtualizados
+  in (inimigosAtualizados, baseFinal)
 
 -- Função auxiliar para verificar se o inimigo chegou à base
-chegouBase :: Inimigo -> Posicao -> Bool
-chegouBase inimigo (xb, yb) =
-  let (xi, yi) = posicaoInimigo inimigo
-  in abs (xi - xb) < 0.5 && abs (yi - yb) < 0.5
+chegouBase :: Inimigo -> Base -> Bool
+chegouBase inimigo base = distancia (posicaoInimigo inimigo) (posicaoBase base) <= 0.2
 
 -- Movimenta o inimigo no mapa
-movimentaInimigo :: Tempo -> Mapa -> Inimigo -> Inimigo
+movimentaInimigo :: Tempo -> Mapa -> Inimigo -> Maybe Inimigo
 movimentaInimigo tempo mapa inimigo = 
   let (x, y) = posicaoInimigo inimigo
-  in if any (\p -> tipoProjetil p == Gelo) (projeteisInimigo inimigo) then inimigo
-     else case direcaoInimigo inimigo of
-          Norte -> if eTerra ( x, y + 1) mapa then inimigo {posicaoInimigo = (x, y + velocidadeInimigo inimigo * tempo)} else if eTerra ( x + 1,   y) mapa then inimigo {direcaoInimigo = Este} else inimigo {direcaoInimigo = Oeste}
-          Sul -> if eTerra ( x, y - 1) mapa then inimigo {posicaoInimigo = (x, y - velocidadeInimigo inimigo * tempo)} else if eTerra ( x + 1,   y) mapa then inimigo {direcaoInimigo = Este} else inimigo {direcaoInimigo = Oeste}
-          Este -> if eTerra ( x + 1,  y) mapa then inimigo {posicaoInimigo = (x + velocidadeInimigo inimigo * tempo, y)} else if eTerra ( x,   y + 1) mapa then inimigo {direcaoInimigo = Norte} else inimigo {direcaoInimigo = Sul}
-          Oeste -> if eTerra ( x - 1,  y) mapa then inimigo {posicaoInimigo = (x - velocidadeInimigo inimigo * tempo, y)} else if eTerra ( x,   y + 1) mapa then inimigo {direcaoInimigo = Norte} else inimigo {direcaoInimigo = Sul}
+      (xb, yb) = (13, 8)  -- Coordenadas da base
+  in if any (\p -> tipoProjetil p == Gelo) (projeteisInimigo inimigo) then Just inimigo
+     else if x == xb && y == yb then Nothing  -- O inimigo chegou à base e deve ser removido
+          else case direcaoInimigo inimigo of
+            Norte -> if eTerra (x, y + 0.52) mapa  -- Verifica se o inimigo pode continuar subindo
+                     then Just inimigo {posicaoInimigo = (x, y + velocidadeInimigo inimigo * tempo)}  -- Move para o próximo tile norte
+                     else if eTerra (x + 0.52, y) mapa  -- Verifica se o inimigo pode virar para o leste após subir
+                          then Just inimigo {direcaoInimigo = Este}  -- Vira para o leste
+                          else Just inimigo {direcaoInimigo = Oeste}  -- Caso contrário, vira para o oeste
+            Sul -> if eTerra (x, y - 0.52) mapa 
+                   then Just inimigo {posicaoInimigo = (x, y - velocidadeInimigo inimigo * tempo)} 
+                   else if eTerra (x + 0.52, y) mapa 
+                        then Just inimigo {direcaoInimigo = Este} 
+                        else Just inimigo {direcaoInimigo = Oeste}
+            Este -> if eTerra (x + 0.52, y) mapa 
+                    then Just inimigo {posicaoInimigo = (x + velocidadeInimigo inimigo * tempo, y)} 
+                    else if eTerra (x, y + 0.52) mapa 
+                         then Just inimigo {direcaoInimigo = Norte} 
+                         else Just inimigo {direcaoInimigo = Sul}
+            Oeste -> if eTerra (x - 0.52, y) mapa 
+                     then Just inimigo {posicaoInimigo = (x - velocidadeInimigo inimigo * tempo, y)} 
+                     else if eTerra (x, y + 0.52) mapa 
+                          then Just inimigo {direcaoInimigo = Norte} 
+                          else Just inimigo {direcaoInimigo = Sul}
 
 -- Ajusta a velocidade do inimigo com base nos projéteis
 ajustaVelocidade :: [Projetil] -> Float
@@ -112,9 +156,17 @@ atualizaOnda dt onda
   | tempoOnda onda > 0 = onda {tempoOnda = tempoOnda onda - dt}
   | otherwise = onda
 
--- Direção para delta de movimento
-direcaoParaDelta :: Direcao -> (Float, Float)
-direcaoParaDelta Norte = (0, -1)
-direcaoParaDelta Sul   = (0, 1)
-direcaoParaDelta Este  = (1, 0)
-direcaoParaDelta Oeste = (-1, 0)
+coordenadasParaMatriz :: (Float, Float) -> (Float, Float)
+coordenadasParaMatriz (px, py) =
+  let
+    -- Ajustar coordenadas do ecrã para alinhar com a origem do mapa
+    offsetX = -895-- Posição inicial em x
+    offsetY = 470  -- Posição inicial em y (invertido para alinhar com a matriz)
+    -- Coordenadas normalizadas para a origem do mapa
+    normalizadoX = px - offsetX
+    normalizadoY = offsetY - py
+    -- Converter para índices da matriz
+    coluna = (normalizadoX / 65)
+    linha  = (normalizadoY / 65)
+  in
+    (fromIntegral (floor coluna), fromIntegral (floor linha))
