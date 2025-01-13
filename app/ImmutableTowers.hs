@@ -56,41 +56,9 @@ estadoInicialJogo = Jogo
         {posicaoInimigo = (1, 0),           -- Posição inicial (x, y)
          direcaoInimigo = Norte,            -- Direção inicial (movimento para baixo)
          vidaInimigo = 100,                 -- Vida inicial
-         velocidadeInimigo = 1,             -- Velocidade inicial
+         velocidadeInimigo = 3,             -- Velocidade inicial
          ataqueInimigo = 50,                -- Dano causado
          butimInimigo = 50,                 -- Créditos ao ser derrotado
-         projeteisInimigo = []},
-   Inimigo
-        {posicaoInimigo = (1, 0),           -- Posição inicial (x, y)
-         direcaoInimigo = Norte,            -- Direção inicial
-         vidaInimigo = 120,                 -- Vida aumentada
-         velocidadeInimigo = 1.5,           -- Velocidade aumentada
-         ataqueInimigo = 60,                -- Dano aumentado
-         butimInimigo = 60,                 -- Créditos ao ser derrotado
-         projeteisInimigo = []},
-   Inimigo
-        {posicaoInimigo = (1, 0),           -- Posição inicial (x, y)
-         direcaoInimigo = Norte,            -- Direção inicial (movimento para a direita)
-         vidaInimigo = 80,                  -- Vida reduzida
-         velocidadeInimigo = 1.2,           -- Velocidade ligeiramente maior
-         ataqueInimigo = 40,                -- Dano reduzido
-         butimInimigo = 40,                 -- Créditos ao ser derrotado
-         projeteisInimigo = []},
-   Inimigo
-        {posicaoInimigo = (4, 9),           -- Posição inicial (x, y)
-         direcaoInimigo = Sul,              -- Direção inicial (movimento para cima)
-         vidaInimigo = 150,                 -- Vida aumentada
-         velocidadeInimigo = 0.8,           -- Velocidade mais lenta
-         ataqueInimigo = 70,                -- Dano aumentado
-         butimInimigo = 70,                 -- Créditos ao ser derrotado
-         projeteisInimigo = []},
-   Inimigo
-        {posicaoInimigo = (4, 9),           -- Posição inicial (x, y)
-         direcaoInimigo = Sul,              -- Direção inicial (movimento para a esquerda)
-         vidaInimigo = 90,                  -- Vida reduzida
-         velocidadeInimigo = 1.4,           -- Velocidade maior
-         ataqueInimigo = 55,                -- Dano médio
-         butimInimigo = 55,                 -- Créditos ao ser derrotado
          projeteisInimigo = []}],
     lojaJogo = [
           (75, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 10.0, alcanceTorre = 6.0,

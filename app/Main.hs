@@ -23,9 +23,9 @@ it = ImmutableTowers estadoInicialJogo NadaSelecionado MenuInicial
 main :: IO ()
 main = do
   let imagemMapa = desenhaMapa mapa
-  menu <- loadBMP "imagensBMP/MainMenu.bmp"
-  vitoria <- loadBMP "imagensBMP/WinScreen.bmp"
-  derrota <- loadBMP "imagensBMP/DefeatScreen.bmp"
+  menu <- loadBMP "imagensBMP/MenuPrincipal.bmp"
+  vitoria <- loadBMP "imagensBMP/Vitoria.bmp"
+  derrota <- loadBMP "imagensBMP/Derrota.bmp"
 
   -- Carrega as imagens dos elementos do jogo
   imagemBase <- desenhaBase "imagensBMP/BaseBMP.bmp" 13 8 
@@ -40,13 +40,13 @@ main = do
   inimigoBMP <- loadBMP "imagensBMP/InimigoImagem.bmp"
   lojaPicture <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" "imagensBMP/TorreResinaLoja.bmp" 
 
-  let uiPictures (ImmutableTowers _ _ MenuInicial) = pictures [ampliaEcras (fromIntegral largura) (fromIntegral altura) menu]
+  let uiPictures (ImmutableTowers _ _ MenuInicial) = pictures [menu]
       uiPictures (ImmutableTowers estadoJogo _ Gameplay) = pictures 
           [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, 
             desenhaInimigos (inimigosJogo estadoJogo) inimigoBMP, desenhaTorres (torresJogo estadoJogo) [torreFogo, torreGelo, torreResina]],
            pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoJogo), escreveCreditos (baseJogo estadoJogo)], lojaPicture]
-      uiPictures (ImmutableTowers _ _ Win) = pictures [ampliaEcras (fromIntegral largura) (fromIntegral altura) vitoria]
-      uiPictures (ImmutableTowers _ _ GameOver) = pictures [ampliaEcras (fromIntegral largura) (fromIntegral altura) derrota]
+      uiPictures (ImmutableTowers _ _ Win) = pictures [vitoria]
+      uiPictures (ImmutableTowers _ _ GameOver) = pictures [derrota]
 
   -- Call play with proper arguments
   play janela fundo fr it uiPictures reageEventos reageTempo

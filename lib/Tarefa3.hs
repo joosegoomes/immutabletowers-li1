@@ -172,11 +172,11 @@ disparaProjetil torre alvos
 
 -- Atualiza o estado dos portais
 atualizaPortal :: Tempo -> Portal -> Portal
-atualizaPortal dt portal = portal {ondasPortal = map (atualizaOnda dt) (ondasPortal portal)}
+atualizaPortal tempo portal = portal {ondasPortal = map (atualizaOnda tempo) (ondasPortal portal)}
 
 -- Atualiza uma onda de inimigos
 atualizaOnda :: Tempo -> Onda -> Onda
-atualizaOnda dt onda
-  | entradaOnda onda > 0 = onda {entradaOnda = entradaOnda onda - dt}
-  | tempoOnda onda > 0 = onda {tempoOnda = tempoOnda onda - dt}
+atualizaOnda tempo onda
+  | entradaOnda onda > 0 = onda {entradaOnda = entradaOnda onda - tempo}
+  | tempoOnda onda > 0 = onda {tempoOnda = tempoOnda onda - tempo}
   | otherwise = onda
