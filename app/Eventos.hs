@@ -7,15 +7,15 @@ import Desenhar
 import Tarefa1
 import ImmutableTowers
 
-reageJogo :: Event -> ImmutableTowers -> ImmutableTowers
-reageJogo (EventKey (MouseButton LeftButton) Down _ (mx, my)) it@(ImmutableTowers estado torreSelecionada) =
+reageEventos :: Event -> ImmutableTowers -> ImmutableTowers
+reageEventos (EventKey (MouseButton LeftButton) Down _ (mx, my)) it@(ImmutableTowers estado torreSelecionada) =
     trace ("Clique detectado em: " ++ show (mx, my)) $
         case torreSelecionada of
             NadaSelecionado -> selecionarTorre (cliqueNaLoja (mx,my)) it
             TorreFogo       -> tentarColocarTorre (mx, my) torreSelecionada it
             TorreGelo       -> tentarColocarTorre (mx, my) torreSelecionada it
             TorreResina     -> tentarColocarTorre (mx, my) torreSelecionada it
-reageJogo _ it = it
+reageEventos _ it = it
 
 -- Determina a torre clicada na loja, usando uma forma mais flexível
 cliqueNaLoja :: (Float, Float) -> TorreSelecionada
