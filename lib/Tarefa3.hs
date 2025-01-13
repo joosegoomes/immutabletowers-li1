@@ -15,8 +15,7 @@ import Debug.Trace (trace)
 
 -- Atualiza o estado do jogo (inimigos e base)
 atualizaJogo :: Tempo -> Jogo -> Jogo
-atualizaJogo tempo jogo = 
-  trace (show novasTorres) $ 
+atualizaJogo tempo jogo =  
   jogo  {inimigosJogo = fst novosInimigos,
          torresJogo   = novasTorres,
          baseJogo     = novaBase,
@@ -56,9 +55,7 @@ filtraInimigosVivos inimigos base =
     processaInimigo (vivos, baseAtualizada) inimigo
       | vidaInimigo inimigo <= 0 || chegouBase inimigo base = 
           -- Inimigo derrotado ou chegou à base, acumula butim e subtrai dano
-          (vivos, baseAtualizada { 
-            creditosBase = creditosBase baseAtualizada + butimInimigo inimigo,  -- Acumula butim
-            vidaBase = if chegouBase inimigo base 
+          (vivos, baseAtualizada {creditosBase = creditosBase baseAtualizada + butimInimigo inimigo,vidaBase = if chegouBase inimigo base 
                        then max 0 (vidaBase baseAtualizada - ataqueInimigo inimigo)  -- Subtrai o dano
                        else vidaBase baseAtualizada })
       | otherwise = (inimigo : vivos, baseAtualizada)  -- Mantém o inimigo vivo
@@ -155,18 +152,3 @@ atualizaOnda dt onda
   | entradaOnda onda > 0 = onda {entradaOnda = entradaOnda onda - dt}
   | tempoOnda onda > 0 = onda {tempoOnda = tempoOnda onda - dt}
   | otherwise = onda
-
-coordenadasParaMatriz :: (Float, Float) -> (Float, Float)
-coordenadasParaMatriz (px, py) =
-  let
-    -- Ajustar coordenadas do ecrã para alinhar com a origem do mapa
-    offsetX = -895-- Posição inicial em x
-    offsetY = 470  -- Posição inicial em y (invertido para alinhar com a matriz)
-    -- Coordenadas normalizadas para a origem do mapa
-    normalizadoX = px - offsetX
-    normalizadoY = offsetY - py
-    -- Converter para índices da matriz
-    coluna = (normalizadoX / 65)
-    linha  = (normalizadoY / 65)
-  in
-    (fromIntegral (floor coluna), fromIntegral (floor linha))
