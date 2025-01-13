@@ -124,7 +124,6 @@ desenhaInimigo inimigoBMP inimigo = translate (x * tamanhoTerreno - tamanhoTerre
 desenhaInimigos :: [Inimigo] -> Picture -> Picture
 desenhaInimigos inimigos inimigoBMP = Pictures $ map (desenhaInimigo inimigoBMP) inimigos
 
--- Function to apply zoom by scaling the image
 ampliaEcras :: Float -> Float -> Picture -> Picture
 ampliaEcras larguraJanela alturaJanela picture =
   let (larguraImagem, alturaImagem) = (larguraJanela, alturaJanela)

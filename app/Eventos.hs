@@ -8,16 +8,12 @@ import Tarefa1
 import ImmutableTowers
 
 reageEventos :: Event -> ImmutableTowers -> ImmutableTowers
--- Handle 'Enter' to move from menu to gameplay
 reageEventos (EventKey (SpecialKey KeyEnter) Down _ _) it@(ImmutableTowers _ _ MenuInicial) =
-    -- Reinicia o jogo ao começar do menu inicial
     it {ecraJogo = Gameplay, estadoJogo = estadoInicialJogo}
--- Handle 'Enter' to return to the menu from win or game over screens
 reageEventos (EventKey (SpecialKey KeyEnter) Down _ _) it@(ImmutableTowers _ _ Win) =
     it {ecraJogo = MenuInicial}
 reageEventos (EventKey (SpecialKey KeyEnter) Down _ _) it@(ImmutableTowers _ _ GameOver) =
     it {ecraJogo = MenuInicial}
--- Handle clicks in gameplay (existing behavior)
 reageEventos (EventKey (MouseButton LeftButton) Down _ (mx, my)) it@(ImmutableTowers estado torreSelecionada Gameplay) =
     trace ("Clique detectado em: " ++ show (mx, my)) $
         case torreSelecionada of
