@@ -14,7 +14,9 @@
   -- (Alínea 1)
   inimigosNoAlcance :: Torre -> [Inimigo] -> [Inimigo]
   inimigosNoAlcance torre = filter (\inimigo -> distancia (posicaoInimigo inimigo) (posicaoTorre torre) <= alcanceTorre torre)
-    where distancia (x1, y1) (x2, y2) = sqrt ((x1 - x2) ^ (2 :: Integer) + (y1 - y2) ^ (2 :: Integer))
+  
+  distancia :: Posicao -> Posicao -> Float
+  distancia (x1, y1) (x2, y2) = sqrt ((x1 - x2) ^ (2 :: Integer) + (y1 - y2) ^ (2 :: Integer))
 
   -- | 'atingeInimigo' aplica o dano de uma torre a um inimigo, reduzindo a vida do inimigo.
   --   Também atualiza a lista de projéteis do inimigo com base nas sinergias entre os projéteis.
