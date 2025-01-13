@@ -74,13 +74,13 @@ main = do
   torreFogo <- loadBMP "imagensBMP/TorreFogo.bmp"
   torreGelo <- loadBMP "imagensBMP/TorreGelo.bmp"
   torreResina <- loadBMP "imagensBMP/TorreResina.bmp"
+  inimigoBMP <- loadBMP "imagensBMP/InimigoImagem.bmp"
   lojaPicture <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" "imagensBMP/TorreResinaLoja.bmp" 
 
   let uiPictures (ImmutableTowers estadoJogo _) = pictures 
-        [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, pictures (map desenhaInimigo (inimigosJogo estadoJogo)), desenhaTorres (torresJogo estadoJogo) [torreFogo, torreGelo, torreResina]],
+        [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, desenhaInimigos (inimigosJogo estadoJogo) (inimigoBMP), desenhaTorres (torresJogo estadoJogo) [torreFogo, torreGelo, torreResina]],
          pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoJogo), escreveCreditos (baseJogo estadoJogo)], lojaPicture]
 
-  play janela fundo fr it (uiPictures) reageJogo reageTempo
-
+  play janela fundo fr it uiPictures reageEventos reageTempo
 
 

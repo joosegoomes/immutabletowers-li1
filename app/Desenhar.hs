@@ -83,7 +83,7 @@ desenhaVida ficheiroImagem x y = do
   return $ translate posX posY imagemAjustada
 
 escreveVida :: Base -> Picture
-escreveVida base = translate 675 400 $ scale 0.25 0.25 $ color black $ text $ show ((vidaBase base))
+escreveVida base = translate 675 400 $ scale 0.25 0.25 $ color black $ text $ show (round (vidaBase base))
 
 escreveCreditos :: Base -> Picture
 escreveCreditos base = translate 745 190 $ scale 0.3 0.3 $ color yellow $ text $ show (creditosBase base)
@@ -117,7 +117,9 @@ desenhaLoja ficheiroImagem1 ficheiroImagem2 ficheiroImagem3 = do
      translate (200) (-fromIntegral altura / 2) imagemAjustada2,
      translate (-700) (-fromIntegral altura / 2) imagemAjustada3] -- Ajusta a posicao
 
-desenhaInimigo :: Inimigo -> Picture 
-desenhaInimigo inimigo = translate (x * tamanhoTerreno -65 /2) (-y * tamanhoTerreno +65/2) $ color red $ circleSolid 10
-  where
-    (x, y) = posicaoInimigo inimigo
+desenhaInimigo :: Picture -> Inimigo -> Picture
+desenhaInimigo inimigoBMP inimigo = translate (x * tamanhoTerreno - tamanhoTerreno/2) (-y * tamanhoTerreno + tamanhoTerreno/2) $ scale 0.4 0.4 inimigoBMP -- Ajuste o tamanho conforme necessário
+                                  where (x, y) = posicaoInimigo inimigo
+
+desenhaInimigos :: [Inimigo] -> Picture -> Picture
+desenhaInimigos inimigos inimigoBMP = Pictures $ map (desenhaInimigo inimigoBMP) inimigos
