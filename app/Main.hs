@@ -3,10 +3,10 @@ module Main where
 import Desenhar
 import Eventos
 import Graphics.Gloss
+import Graphics.Gloss.Interface.IO.Game
 import ImmutableTowers
 import LI12425
 import Tempo
-import Graphics.Gloss.Interface.IO.Game
 
 janela :: Display
 janela = InWindow "Tower Defense" (1920, 1080) (0, 0) 
@@ -18,51 +18,14 @@ fr :: Int
 fr = 60
 
 it :: ImmutableTowers
-it = ImmutableTowers estadoInicialJogo NadaSelecionado
-
-estadoInicialJogo :: Jogo --trocar os valores
-estadoInicialJogo = Jogo
-  {baseJogo = Base
-      {vidaBase = 1000.0,
-       posicaoBase = (13, 8), -- Posição inicial no mapa
-       creditosBase = 100000},
-   portaisJogo = [Portal
-      {posicaoPortal = (7, 3), -- Posição do portal inicial
-       ondasPortal = [Onda {inimigosOnda = [Inimigo
-              {posicaoInimigo = (0.0, 0.0),
-               direcaoInimigo = Sul,
-               vidaInimigo = 50.0,
-               velocidadeInimigo = 1.0,
-               ataqueInimigo = 5.0,
-               butimInimigo = 25,
-               projeteisInimigo = [] }],
-               cicloOnda = 3.0,
-               tempoOnda = 3.0,
-               entradaOnda = 0.0}] }],
-    torresJogo = [],
-    mapaJogo = mapa,
-    inimigosJogo = [Inimigo
-       {posicaoInimigo = (1, 1),           -- Posição inicial (x, y)
-        direcaoInimigo = Sul,           -- Direção inicial (movimento para a direita)
-        vidaInimigo = 100,                 -- Vida inicial
-        velocidadeInimigo = 5,             -- Velocidade inicial
-        ataqueInimigo = 10,                -- Dano causado
-        butimInimigo = 50,                 -- Créditos ao ser derrotado
-        projeteisInimigo = []}],             -- Nenhum projétil inicialmente
-    lojaJogo = [
-          (150, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 20.0, alcanceTorre = 5.0,
-                      rajadaTorre = 1, cicloTorre = 1.5, tempoTorre = 0.0,
-                      projetilTorre = Projetil {tipoProjetil = Fogo, duracaoProjetil = Finita 2.0}}),
-          (300, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 10.0, alcanceTorre = 4.0,
-                      rajadaTorre = 1, cicloTorre = 2.0, tempoTorre = 0.0,
-                      projetilTorre = Projetil {tipoProjetil = Gelo, duracaoProjetil = Finita 1.5}}),
-          (75, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 5.0, alcanceTorre = 6.0,
-                      rajadaTorre = 1, cicloTorre = 1.0, tempoTorre = 0.0,
-                      projetilTorre = Projetil {tipoProjetil = Resina, duracaoProjetil = Infinita}})]}
+it = ImmutableTowers estadoInicialJogo NadaSelecionado MenuInicial
 
 main :: IO ()
 main = do
   let imagemMapa = desenhaMapa mapa
+  menu <- loadBMP "imagensBMP/MainMenu.bmp"
+  vitoria <- loadBMP "imagensBMP/WinScreen.bmp"
+  derrota <- loadBMP "imagensBMP/DefeatScreen.bmp"
 
   -- Carrega as imagens dos elementos do jogo
   imagemBase <- desenhaBase "imagensBMP/BaseBMP.bmp" 13 8 
@@ -77,10 +40,13 @@ main = do
   inimigoBMP <- loadBMP "imagensBMP/InimigoImagem.bmp"
   lojaPicture <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" "imagensBMP/TorreResinaLoja.bmp" 
 
-  let uiPictures (ImmutableTowers estadoJogo _) = pictures 
-        [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, desenhaInimigos (inimigosJogo estadoJogo) (inimigoBMP), desenhaTorres (torresJogo estadoJogo) [torreFogo, torreGelo, torreResina]],
-         pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoJogo), escreveCreditos (baseJogo estadoJogo)], lojaPicture]
+  let uiPictures (ImmutableTowers _ _ MenuInicial) = pictures [ampliaEcras (fromIntegral largura) (fromIntegral altura) menu]
+      uiPictures (ImmutableTowers estadoJogo _ Gameplay) = pictures 
+          [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, 
+            desenhaInimigos (inimigosJogo estadoJogo) inimigoBMP, desenhaTorres (torresJogo estadoJogo) [torreFogo, torreGelo, torreResina]],
+           pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoJogo), escreveCreditos (baseJogo estadoJogo)], lojaPicture]
+      uiPictures (ImmutableTowers _ _ Win) = pictures [ampliaEcras (fromIntegral largura) (fromIntegral altura) vitoria]
+      uiPictures (ImmutableTowers _ _ GameOver) = pictures [ampliaEcras (fromIntegral largura) (fromIntegral altura) derrota]
 
+  -- Call play with proper arguments
   play janela fundo fr it uiPictures reageEventos reageTempo
-
-

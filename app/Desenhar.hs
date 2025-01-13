@@ -123,3 +123,9 @@ desenhaInimigo inimigoBMP inimigo = translate (x * tamanhoTerreno - tamanhoTerre
 
 desenhaInimigos :: [Inimigo] -> Picture -> Picture
 desenhaInimigos inimigos inimigoBMP = Pictures $ map (desenhaInimigo inimigoBMP) inimigos
+
+-- Function to apply zoom by scaling the image
+ampliaEcras :: Float -> Float -> Picture -> Picture
+ampliaEcras windowWidth windowHeight picture =
+  let (picWidth, picHeight) = (windowWidth, windowHeight)
+  in scale (3.3 * (picWidth / 1920)) (3.5 * (picHeight / 1080)) picture
