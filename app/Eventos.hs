@@ -21,7 +21,6 @@ reageEventos (EventKey (MouseButton LeftButton) Down _ (mx, my)) it@(ImmutableTo
             TorreFogo       -> colocaTorre (mx, my) torreSelecionada it
             TorreGelo       -> colocaTorre (mx, my) torreSelecionada it
             TorreResina     -> colocaTorre (mx, my) torreSelecionada it
--- Default case
 reageEventos _ it = it
 
 -- Seleciona a torre desejada, desde que o jogador tenha créditos suficientes
