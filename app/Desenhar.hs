@@ -62,15 +62,17 @@ desenhaPortal ficheiroImagem x y = do
       posY = -fromIntegral y * tamanhoTerreno
   return $ translate posX posY imagemAjustada
 
-desenhaTorre :: Torre -> IO Picture
-desenhaTorre torre = do
+desenhaTorre :: [Picture] -> Torre -> Picture
+desenhaTorre [torreFogo,torreGelo,torreResina] torre =
   let (x, y) = posicaoTorre torre
-  imagemTorre <- case tipoProjetil (projetilTorre torre) of
-    Fogo   -> loadBMP "imagensBMP/TorreFogo.bmp"
-    Gelo   -> loadBMP "imagensBMP/TorreGelo.bmp"
-    Resina -> loadBMP "imagensBMP/TorreResina.bmp"
-  let imagemAjustada = scale 0.3 0.3 imagemTorre -- Ajuste o tamanho conforme necessário
-  return $ translate (x * tamanhoTerreno + tamanhoTerreno / 2) (-y * tamanhoTerreno - tamanhoTerreno / 2) imagemAjustada
+      imagemTorre = case tipoProjetil (projetilTorre torre) of
+        Fogo   -> torreFogo
+        Gelo   -> torreGelo
+        Resina -> torreResina
+  in translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ scale 0.1 0.1 imagemTorre -- Ajuste o tamanho conforme necessário
+
+desenhaTorres :: [Torre] -> [Picture] -> Picture
+desenhaTorres torres [torreFogo,torreGelo,torreResina] = Pictures $ map (desenhaTorre [torreFogo,torreGelo,torreResina]) torres 
 
 desenhaVida :: FilePath -> Int -> Int -> IO Picture
 desenhaVida ficheiroImagem x y = do
@@ -81,7 +83,7 @@ desenhaVida ficheiroImagem x y = do
   return $ translate posX posY imagemAjustada
 
 escreveVida :: Base -> Picture
-escreveVida base = translate 675 400 $ scale 0.25 0.25 $ color black $ text $ show (round (vidaBase base))
+escreveVida base = translate 675 400 $ scale 0.25 0.25 $ color black $ text $ show ((vidaBase base))
 
 escreveCreditos :: Base -> Picture
 escreveCreditos base = translate 745 190 $ scale 0.3 0.3 $ color yellow $ text $ show (creditosBase base)
@@ -107,15 +109,15 @@ desenhaLoja ficheiroImagem1 ficheiroImagem2 ficheiroImagem3 = do
   torreFogo <- loadBMP ficheiroImagem1 
   torreGelo <- loadBMP ficheiroImagem2 
   torreResina <- loadBMP ficheiroImagem3
-  let imagemAjustada1 = scale 0.3 0.3 torreFogo -- Ajusta o tamanho
+  let imagemAjustada1 = scale 0.31 0.31 torreFogo -- Ajusta o tamanho
   let imagemAjustada2 = scale 0.3 0.3 torreGelo 
-  let imagemAjustada3 = scale 0.3 0.3 torreResina
+  let imagemAjustada3 = scale 0.28 0.28 torreResina
   return $ pictures  
      [translate (-250) (-fromIntegral altura / 2) imagemAjustada1, 
      translate (200) (-fromIntegral altura / 2) imagemAjustada2,
      translate (-700) (-fromIntegral altura / 2) imagemAjustada3] -- Ajusta a posicao
 
 desenhaInimigo :: Inimigo -> Picture 
-desenhaInimigo inimigo = translate (x * tamanhoTerreno) (-y * tamanhoTerreno) $ color red $ circleSolid 10
+desenhaInimigo inimigo = translate (x * tamanhoTerreno -65 /2) (-y * tamanhoTerreno +65/2) $ color red $ circleSolid 10
   where
     (x, y) = posicaoInimigo inimigo

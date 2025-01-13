@@ -9,7 +9,7 @@ import Tempo
 import Graphics.Gloss.Interface.IO.Game
 
 janela :: Display
-janela = InWindow "Immutable Towers" (1920, 1080) (0, 0)
+janela = InWindow "Tower Defense" (1920, 1080) (0, 0) 
 
 fundo :: Color
 fundo = white
@@ -18,14 +18,14 @@ fr :: Int
 fr = 60
 
 it :: ImmutableTowers
-it = ImmutableTowers estadoInicialJogo Nothing
+it = ImmutableTowers estadoInicialJogo NadaSelecionado
 
 estadoInicialJogo :: Jogo --trocar os valores
 estadoInicialJogo = Jogo
   {baseJogo = Base
       {vidaBase = 1000.0,
        posicaoBase = (13, 8), -- Posição inicial no mapa
-       creditosBase = 150},
+       creditosBase = 100000},
    portaisJogo = [Portal
       {posicaoPortal = (7, 3), -- Posição do portal inicial
        ondasPortal = [Onda {inimigosOnda = [Inimigo
@@ -71,14 +71,16 @@ main = do
   imagemTabua <- desenhaTabua "imagensBMP/Tabua.bmp" 17 (0)
   imagemPortal1 <- desenhaPortal "imagensBMP/PortalBMP.bmp" 1 0
   imagemPortal2 <- desenhaPortal "imagensBMP/PortalBMP.bmp" 4 9
-
+  torreFogo <- loadBMP "imagensBMP/TorreFogo.bmp"
+  torreGelo <- loadBMP "imagensBMP/TorreGelo.bmp"
+  torreResina <- loadBMP "imagensBMP/TorreResina.bmp"
   lojaPicture <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" "imagensBMP/TorreResinaLoja.bmp" 
 
   let uiPictures (ImmutableTowers estadoJogo _) = pictures 
-        [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, pictures (map desenhaInimigo (inimigosJogo estadoJogo))],
-         pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoJogo), escreveCreditos (baseJogo estadoJogo)],lojaPicture]
+        [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, pictures (map desenhaInimigo (inimigosJogo estadoJogo)), desenhaTorres (torresJogo estadoJogo) [torreFogo, torreGelo, torreResina]],
+         pictures [imagemVida, imagemMoeda, imagemTabua, escreveVida (baseJogo estadoJogo), escreveCreditos (baseJogo estadoJogo)], lojaPicture]
 
-  play janela fundo fr it (uiPictures) reageEventos reageTempo
+  play janela fundo fr it (uiPictures) reageJogo reageTempo
 
 
 
