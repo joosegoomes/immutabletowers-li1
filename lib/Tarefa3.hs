@@ -17,28 +17,29 @@ import Data.List (find)
 
 -- Atualiza o estado do jogo (inimigos e base)
 atualizaJogo :: Tempo -> Jogo -> Jogo
-atualizaJogo tempo jogo =  
+atualizaJogo tempo jogo =
   jogo  {inimigosJogo = fst novosInimigos,
          torresJogo   = novasTorres,
          baseJogo     = novaBase,
          portaisJogo  = novosPortais}
   where
     -- Atualizar inimigos com movimento e aplicar efeitos
-    novosInimigos = atualizaInimigos tempo (inimigosJogo jogo) (baseJogo jogo) (mapaJogo jogo)
+    novosInimigos = atualizaInimigos tempo (inimigosJogo jogo) (baseJogo jogo) (mapaJogo jogo)  -- Atualiza inimigos
+     -- where (x,y) = (atualizaPortais portaisJogo)
 
     -- Atualizar base com base nos novos estados dos inimigos
-    novaBase = foldl (\base inimigo -> 
+    novaBase = foldl (\base inimigo ->
                           if chegouBase inimigo (baseJogo jogo)  -- Verifica se o inimigo chegou à base
                           then base {vidaBase = max 0 (vidaBase base - ataqueInimigo inimigo)}  -- Subtrai o dano
-                          else base) 
-                     (baseJogo jogo) 
+                          else base)
+                     (baseJogo jogo)
                      (fst novosInimigos)
 
     -- Atualizar torres com base nos novos estados dos inimigos
-    novasTorres = map (atualizaTorre tempo (fst novosInimigos)) (torresJogo jogo)
+    novasTorres = fst (atualizaTorres tempo (fst novosInimigos) (torresJogo jogo) (baseJogo jogo))
 
     -- Atualizar portais
-    novosPortais = map (atualizaPortal tempo) (portaisJogo jogo)
+    novosPortais = fst (atualizaPortais tempo (portaisJogo jogo))
 
 -- Atualiza os inimigos no mapa e aplica suas ações (movimentação, dano à base)
 atualizaInimigos :: Tempo -> [Inimigo] -> Base -> Mapa -> ([Inimigo], Base)
@@ -61,9 +62,9 @@ filtraInimigosVivos inimigos base =
   where
     -- Filtra e processa cada inimigo
     processaInimigo (vivos, baseAtualizada) inimigo
-      | vidaInimigo inimigo <= 0 || chegouBase inimigo base = 
+      | vidaInimigo inimigo <= 0 || chegouBase inimigo base =
           -- Inimigo derrotado ou chegou à base, acumula butim e subtrai dano
-          (vivos, baseAtualizada {creditosBase = creditosBase baseAtualizada + butimInimigo inimigo,vidaBase = if chegouBase inimigo base 
+          (vivos, baseAtualizada {creditosBase = creditosBase baseAtualizada + butimInimigo inimigo,vidaBase = if chegouBase inimigo base
                        then max 0 (vidaBase baseAtualizada - ataqueInimigo inimigo)  -- Subtrai o dano
                        else vidaBase baseAtualizada })
       | otherwise = (inimigo : vivos, baseAtualizada)  -- Mantém o inimigo vivo
@@ -72,13 +73,13 @@ filtraInimigosVivos inimigos base =
 atualizaEstado :: Tempo -> [Inimigo] -> Base -> Mapa -> ([Inimigo], Base)
 atualizaEstado tempo inimigos base mapa =
   let (inimigosAtualizados, baseComDano) = atualizaInimigos tempo inimigos base mapa
-      baseFinal = foldl (\baseAtualizado inimigo -> 
+      baseFinal = foldl (\baseAtualizado inimigo ->
                           if chegouBase inimigo base  -- Verifica se o inimigo chegou à base
                           then baseAtualizado {vidaBase = max 0 (vidaBase baseAtualizado - ataqueInimigo inimigo)}  -- Subtrai o dano
-                          else baseAtualizado) 
-                        baseComDano 
+                          else baseAtualizado)
+                        baseComDano
                         inimigosAtualizados
-  in (inimigosAtualizados, baseFinal) 
+  in (inimigosAtualizados, baseFinal)
 
 -- Verifica se o inimigo chegou à base
 chegouBase :: Inimigo -> Base -> Bool
@@ -92,16 +93,19 @@ movimentaInimigo :: Tempo -> Mapa -> Inimigo -> Maybe Inimigo
 movimentaInimigo tempo mapa inimigo =
   let (x, y) = posicaoInimigo inimigo
       (xB, yB) = (13, 8)  -- Coordenadas da base
-      proxPos = case direcaoInimigo inimigo of
-                  Norte -> (x, y + velocidadeInimigo inimigo * tempo)
-                  Sul   -> (x, y - velocidadeInimigo inimigo * tempo)
-                  Este  -> (x + velocidadeInimigo inimigo * tempo, y)
-                  Oeste -> (x - velocidadeInimigo inimigo * tempo, y)
+      -- Aplica efeitos dos projéteis ao inimigo antes de mover
+      inimigoAjustado = aplicaEfeitosProjeteis inimigo
+      velocidadeAjustada = ajustaVelocidade inimigoAjustado * velocidadeInimigo inimigoAjustado
+      proxPos = case direcaoInimigo inimigoAjustado of
+                  Norte -> (x, y + velocidadeAjustada * tempo)
+                  Sul   -> (x, y - velocidadeAjustada * tempo)
+                  Este  -> (x + velocidadeAjustada * tempo, y)
+                  Oeste -> (x - velocidadeAjustada * tempo, y)
   in if distancia (x, y) (xB, yB) <= 0.2  -- O inimigo chegou à base
      then Nothing  -- Remove o inimigo da lista
      else if eTerra proxPos mapa  -- O próximo passo é um terreno válido
-          then Just inimigo {posicaoInimigo = proxPos}  -- Atualiza posição
-          else rotacionaDirecao inimigo mapa  -- Tenta rotacionar direção
+          then Just inimigoAjustado {posicaoInimigo = proxPos}  -- Atualiza posição
+          else rotacionaDirecao inimigoAjustado mapa  -- Tenta rotacionar direção
 
 -- Rotaciona a direção do inimigo ao encontrar um obstáculo
 rotacionaDirecao :: Inimigo -> Mapa -> Maybe Inimigo
@@ -123,10 +127,10 @@ rotacionaDirecao inimigo mapa =
        Nothing          -> Just inimigo  -- Nenhuma direção válida, mantém como está
 
 -- Ajusta a velocidade do inimigo com base nos projéteis
-ajustaVelocidade :: [Projetil] -> Float
-ajustaVelocidade [] = 1
-ajustaVelocidade ps
-  | any (\projetil -> tipoProjetil projetil == Resina) ps = 0.5
+ajustaVelocidade :: Inimigo -> Float
+ajustaVelocidade inimigo
+  | any (\projetil -> tipoProjetil projetil == Resina) (projeteisInimigo inimigo) = 0.7
+  | any (\projetil -> tipoProjetil projetil == Gelo) (projeteisInimigo inimigo) = 0
   | otherwise = 1
 
 -- Aplica os efeitos dos projéteis no inimigo
@@ -134,38 +138,66 @@ aplicaEfeitosProjeteis :: Inimigo -> Inimigo
 aplicaEfeitosProjeteis inimigo = foldl aplicaEfeito inimigo (projeteisInimigo inimigo)
   where
     aplicaEfeito :: Inimigo -> Projetil -> Inimigo
-    aplicaEfeito acc (Projetil Fogo (Finita t)) = 
+    aplicaEfeito acc (Projetil Fogo (Finita t)) =
       acc {vidaInimigo = vidaInimigo acc - 5 * min t 1}
-    aplicaEfeito acc (Projetil Fogo Infinita) = 
+    aplicaEfeito acc (Projetil Fogo Infinita) =
       acc {vidaInimigo = vidaInimigo acc - 5} -- Dano contínuo por segundo
-    aplicaEfeito acc (Projetil Gelo Infinita) = 
+    aplicaEfeito acc (Projetil Gelo Infinita) =
       acc {velocidadeInimigo = 0} -- Congela o inimigo
-    aplicaEfeito acc (Projetil Resina Infinita) = 
+    aplicaEfeito acc (Projetil Resina Infinita) =
       acc {velocidadeInimigo = velocidadeInimigo acc * 0.5} -- Reduz velocidade permanentemente
     aplicaEfeito acc _ = acc
 
--- Atualiza as torres
-atualizaTorre :: Tempo -> [Inimigo] -> Torre -> Torre 
-atualizaTorre dt inimigos torre
-  | tempoTorre torre > 0 = torre {tempoTorre = tempoTorre torre - dt}
-  | null alvos = torre
-  | otherwise = torre {tempoTorre = cicloTorre torre, projetilTorre = disparaProjetil torre alvos}
+-- Atualiza a torre e os inimigos, aplicando efeitos e ajustando vida
+atualizaTorre :: Tempo -> [Inimigo] -> Torre -> (Torre, [Inimigo])
+atualizaTorre tempo inimigos torre
+  | tempoTorre torre > 0 = (torre {tempoTorre = tempoTorre torre - tempo}, inimigos)
+  | null alvos = (torre, inimigos)
+  | otherwise = (torreAtualizada, inimigosAtualizados)
   where
     alvos = inimigosNoAlcance torre inimigos
+    proj = disparaProjetil torre alvos
+    torreAtualizada = torre {tempoTorre = cicloTorre torre, projetilTorre = proj}
+    inimigosAtualizados = map (atingeInimigo torre) inimigos
 
--- Função que dispara o projétil pela torre 
+-- Atualiza todas as torres e os inimigos em um único passo
+atualizaTorres :: Tempo -> [Inimigo] -> [Torre] -> Base -> ([Torre], [Inimigo])
+atualizaTorres tempo inimigos torres base =
+  let (torresAtualizadas, inimigosAtualizados) = foldl atualiza ([], inimigos) torres
+  in (torresAtualizadas, fst (filtraInimigosVivos inimigosAtualizados base))
+  where
+    atualiza (torresAtualizadas, inimigosRestantes) torre =
+      let (torreAtualizada, novosInimigos) = atualizaTorre tempo inimigosRestantes torre
+      in (torresAtualizadas ++ [torreAtualizada], novosInimigos)
+
+-- Função que dispara o projétil pela torre
 disparaProjetil :: Torre -> [Inimigo] -> Projetil
 disparaProjetil torre alvos
   | null alvos = Projetil (tipoProjetil (projetilTorre torre)) Infinita  -- Caso não haja inimigos, cria um projétil "vazio"
   | otherwise  = Projetil (tipoProjetil (projetilTorre torre)) (Finita 1)  -- Dispara no inimigo mais próximo com tempo limitado
 
 -- Atualiza o estado dos portais
-atualizaPortal :: Tempo -> Portal -> Portal
-atualizaPortal dt portal = portal {ondasPortal = map (atualizaOnda dt) (ondasPortal portal)}
+atualizaPortais :: Tempo -> [Portal] -> ([Portal], [Inimigo])
+atualizaPortais tempo portais = 
+  let (novosPortais, inimigosGerados) = unzip $ map (atualizaPortal tempo) portais
+  in (novosPortais, concat inimigosGerados)
+
+-- Atualiza o estado de um único portal
+atualizaPortal :: Tempo -> Portal -> (Portal, [Inimigo])
+atualizaPortal tempo portal = 
+  let (novasOndas, inimigosGerados) = unzip $ map (atualizaOnda tempo) (ondasPortal portal)
+  in (portal {ondasPortal = novasOndas}, concat inimigosGerados)
 
 -- Atualiza uma onda de inimigos
-atualizaOnda :: Tempo -> Onda -> Onda
-atualizaOnda dt onda
-  | entradaOnda onda > 0 = onda {entradaOnda = entradaOnda onda - dt}
-  | tempoOnda onda > 0 = onda {tempoOnda = tempoOnda onda - dt}
-  | otherwise = onda
+atualizaOnda :: Tempo -> Onda -> (Onda, [Inimigo])
+atualizaOnda tempo onda
+  | entradaOnda onda > 0 = (onda {entradaOnda = entradaOnda onda - tempo}, [])
+  | tempoOnda onda <= 0  = (onda {tempoOnda = cicloOnda onda}, lancarInimigos (onda {tempoOnda = cicloOnda onda}))
+  | otherwise = (onda, lancarInimigos onda)
+
+-- Função para lançar os inimigos da onda
+lancarInimigos :: Onda -> [Inimigo]
+lancarInimigos onda = inimigosOnda onda
+
+  -- tempoOnda <= 0 -> tempoOnda == cicloOnda 
+  

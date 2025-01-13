@@ -41,6 +41,8 @@ main = do
   inimigoFlip <- loadBMP "imagensBMP/InimigoFlipped.bmp"
   lojaPicture <- desenhaLoja "imagensBMP/TorreFogoLoja.bmp" "imagensBMP/TorreGeloLoja.bmp" "imagensBMP/TorreResinaLoja.bmp" 
 
+  background <- loadBMP "imagensBMP/Fundo.bmp"
+
   let uiPictures (ImmutableTowers _ _ MenuInicial) = pictures [menu]
       uiPictures (ImmutableTowers estadoJogo _ Gameplay) = pictures 
           [translate (-895) 470 $ pictures [imagemMapa, imagemBase, imagemPortal1, imagemPortal2, 

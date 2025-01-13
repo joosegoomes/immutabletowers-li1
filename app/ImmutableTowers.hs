@@ -45,7 +45,7 @@ estadoInicialJogo = Jogo
                velocidadeInimigo = 1.0,
                ataqueInimigo = 5.0,
                butimInimigo = 25,
-               projeteisInimigo = []}],
+               projeteisInimigo = [Projetil {tipoProjetil = Gelo, duracaoProjetil = Finita 3}]}],
             cicloOnda = 30,
             tempoOnda = 3.0,
             entradaOnda = 3.0}]}],
@@ -61,12 +61,12 @@ estadoInicialJogo = Jogo
          butimInimigo = 50,                 -- Créditos ao ser derrotado
          projeteisInimigo = []}],
     lojaJogo = [
-          (75, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 10.0, alcanceTorre = 6.0,
+          (75, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 10.0, alcanceTorre = 2000000000.0, -- editar alcance
                       rajadaTorre = 5, cicloTorre = 1.0, tempoTorre = 0,
                       projetilTorre = Projetil {tipoProjetil = Resina, duracaoProjetil = Infinita}}),
           (150, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 15.0, alcanceTorre = 5.0,
                       rajadaTorre = 3, cicloTorre = 1.5, tempoTorre = 0,
-                      projetilTorre = Projetil {tipoProjetil = Fogo, duracaoProjetil = Finita 2.0}}),
-          (300, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 25.0, alcanceTorre = 4.0,
+                      projetilTorre = Projetil {tipoProjetil = Fogo, duracaoProjetil = Finita 3}}),
+          (300, Torre {posicaoTorre = (0.0, 0.0), danoTorre = 25.0, alcanceTorre = 2000000000000.0, -- editar alcance
                       rajadaTorre = 3, cicloTorre = 2.0, tempoTorre = 0,
-                      projetilTorre = Projetil {tipoProjetil = Gelo, duracaoProjetil = Finita 1.5}})]}
+                      projetilTorre = Projetil {tipoProjetil = Gelo, duracaoProjetil = Finita 2}})]}
