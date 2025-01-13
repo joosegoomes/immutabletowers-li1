@@ -118,8 +118,8 @@ rotacionaDirecao inimigo mapa =
                         Oeste -> [Norte, Sul]
       direcaoValida = find (\direcao -> eTerra (novaPosicao direcao) mapa) novasDirecoes
       novaPosicao direcao = case direcao of
-                        Norte -> (x, y + 0.52)
-                        Sul   -> (x, y - 0.52)
+                        Norte -> (x, y - 0.52)
+                        Sul   -> (x, y + 0.52)
                         Este  -> (x + 0.52, y)
                         Oeste -> (x - 0.52, y)
   in case direcaoValida of
