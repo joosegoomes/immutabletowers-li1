@@ -93,10 +93,8 @@ movimentaInimigo :: Tempo -> Mapa -> Inimigo -> Maybe Inimigo
 movimentaInimigo tempo mapa inimigo =
   let (x, y) = posicaoInimigo inimigo
       (xB, yB) = (13, 8)  -- Coordenadas da base
-      -- Aplica efeitos dos projéteis ao inimigo antes de mover
-      inimigoAjustado = aplicaEfeitosProjeteis inimigo
-      velocidadeAjustada = ajustaVelocidade inimigoAjustado * velocidadeInimigo inimigoAjustado
-      proxPos = case direcaoInimigo inimigoAjustado of
+      velocidadeAjustada = ajustaVelocidade inimigo * velocidadeInimigo inimigo
+      proxPos = case direcaoInimigo inimigo of
                   Norte -> (x, y + velocidadeAjustada * tempo)
                   Sul   -> (x, y - velocidadeAjustada * tempo)
                   Este  -> (x + velocidadeAjustada * tempo, y)
@@ -104,8 +102,8 @@ movimentaInimigo tempo mapa inimigo =
   in if distancia (x, y) (xB, yB) <= 0.2  -- O inimigo chegou à base
      then Nothing  -- Remove o inimigo da lista
      else if eTerra proxPos mapa  -- O próximo passo é um terreno válido
-          then Just inimigoAjustado {posicaoInimigo = proxPos}  -- Atualiza posição
-          else rotacionaDirecao inimigoAjustado mapa  -- Tenta rotacionar direção
+          then Just inimigo {posicaoInimigo = proxPos}  -- Atualiza posição
+          else rotacionaDirecao inimigo mapa  -- Tenta rotacionar direção
 
 -- Rotaciona a direção do inimigo ao encontrar um obstáculo
 rotacionaDirecao :: Inimigo -> Mapa -> Maybe Inimigo
@@ -118,8 +116,8 @@ rotacionaDirecao inimigo mapa =
                         Oeste -> [Norte, Sul]
       direcaoValida = find (\direcao -> eTerra (novaPosicao direcao) mapa) novasDirecoes
       novaPosicao direcao = case direcao of
-                        Norte -> (x, y - 0.52)
-                        Sul   -> (x, y + 0.52)
+                        Norte -> (x, y + 0.52)
+                        Sul   -> (x, y - 0.52)
                         Este  -> (x + 0.52, y)
                         Oeste -> (x - 0.52, y)
   in case direcaoValida of
@@ -129,9 +127,9 @@ rotacionaDirecao inimigo mapa =
 -- Ajusta a velocidade do inimigo com base nos projéteis
 ajustaVelocidade :: Inimigo -> Float
 ajustaVelocidade inimigo
-  | any (\projetil -> tipoProjetil projetil == Resina) (projeteisInimigo inimigo) = 0.7  -- Resina reduz a velocidade
-  | any (\projetil -> tipoProjetil projetil == Gelo) (projeteisInimigo inimigo) = 0      -- Gelo congela o inimigo
-  | otherwise = 1  -- Se não tiver projéteis, mantém a velocidade normal
+  | any (\projetil -> tipoProjetil projetil == Resina) (projeteisInimigo inimigo) = 0.7
+  | any (\projetil -> tipoProjetil projetil == Gelo) (projeteisInimigo inimigo) = 0
+  | otherwise = 1
 
 -- Aplica os efeitos dos projéteis no inimigo
 aplicaEfeitosProjeteis :: Inimigo -> Inimigo
@@ -139,14 +137,14 @@ aplicaEfeitosProjeteis inimigo = foldl aplicaEfeito inimigo (projeteisInimigo in
   where
     aplicaEfeito :: Inimigo -> Projetil -> Inimigo
     aplicaEfeito acc (Projetil Fogo (Finita t)) =
-      acc {vidaInimigo = vidaInimigo acc - 5 * min t 1}  -- Fogo com dano baseado no tempo
+      acc {vidaInimigo = vidaInimigo acc - 5 * min t 1}
     aplicaEfeito acc (Projetil Fogo Infinita) =
-      acc {vidaInimigo = vidaInimigo acc - 5}  -- Dano contínuo
+      acc {vidaInimigo = vidaInimigo acc - 5} -- Dano contínuo por segundo
     aplicaEfeito acc (Projetil Gelo Infinita) =
-      acc {velocidadeInimigo = 0}  -- Gelo congela o inimigo
+      acc {velocidadeInimigo = 0} -- Congela o inimigo
     aplicaEfeito acc (Projetil Resina Infinita) =
-      acc {velocidadeInimigo = velocidadeInimigo acc * 0.5}  -- Resina reduz a velocidade permanentemente
-    aplicaEfeito acc _ = acc  -- Outros projéteis não afetam o inimigo
+      acc {velocidadeInimigo = velocidadeInimigo acc * 0.5} -- Reduz velocidade permanentemente
+    aplicaEfeito acc _ = acc
 
 -- Atualiza a torre e os inimigos, aplicando efeitos e ajustando vida
 atualizaTorre :: Tempo -> [Inimigo] -> Torre -> (Torre, [Inimigo])
@@ -192,12 +190,15 @@ atualizaPortal tempo portal =
 atualizaOnda :: Tempo -> Onda -> (Onda, [Inimigo])
 atualizaOnda tempo onda
   | entradaOnda onda > 0 = (onda {entradaOnda = entradaOnda onda - tempo}, [])
-  | tempoOnda onda <= 0  = (onda {tempoOnda = cicloOnda onda}, lancarInimigos (onda {tempoOnda = cicloOnda onda}))
+  | tempoOnda onda <= 0  = 
+      let -- Quando o tempoOnda chega a 0 ou menos, reiniciamos o tempo da onda
+          novaOnda = onda {tempoOnda = cicloOnda onda}
+      in (novaOnda, lancarInimigos novaOnda)
   | otherwise = (onda, lancarInimigos onda)
 
 -- Função para lançar os inimigos da onda
 lancarInimigos :: Onda -> [Inimigo]
 lancarInimigos onda = inimigosOnda onda
 
--- tempoOnda <= 0 -> tempoOnda == cicloOnda 
+  -- tempoOnda <= 0 -> tempoOnda == cicloOnda 
   
