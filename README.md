@@ -68,3 +68,5 @@ A documentação do projeto pode ser gerada recorrendo ao [Haddock](https://hask
 ```bash
 cabal haddock
 ```
+# immutabletowers-li1
+⚠️ Aviso Legal: Este código é propriedade exclusiva do autor. Nenhuma parte pode ser copiada, usada ou republicada sem permissão.
