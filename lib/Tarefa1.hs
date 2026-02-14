@@ -13,7 +13,7 @@ import LI12425
 {-|
 Valida se um estado de jogo é válido.
 
-### Exemplos:
+== Exemplos:
 >>> validaJogo Jogo { portaisJogo = [], baseJogo = Base { posicaoBase = (0,0), creditosBase = 0 }, mapaJogo = [], torresJogo = [], inimigosJogo = [] }
 False
 >>> validaJogo Jogo { portaisJogo = [Portal {posicaoPortal = (1,1), ondasPortal = []}], baseJogo = Base { posicaoBase = (0,0), creditosBase = 10 }, mapaJogo = [[Terra]], torresJogo = [], inimigosJogo = [] }
