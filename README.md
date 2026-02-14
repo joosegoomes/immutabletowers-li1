@@ -10,6 +10,18 @@ O objetivo do jogo é impedir que ondas de inimigos alcancem a base do jogador. 
 
 O enunciado do projeto pode ser consultado [aqui](./enunciado_projeto.pdf)
 
+## Imagens do jogo
+
+### Menu Inicial
+
+![menuinicial](imagensBMP/MenuPrincipal.bmp)
+
+### Menu Final
+
+Ao completar todas as fases,o jogador recebe uma mensagem de Vitória:
+
+![menufinal](imagensBMP/Vitoria.bmp)
+
 ## Desenvolvido por
 
 - [José dos Santos Gomes](https://github.com/joosegoomes) - a110367
